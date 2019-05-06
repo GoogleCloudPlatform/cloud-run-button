@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"gopkg.in/AlecAivazis/survey.v1"
+	surveycore "gopkg.in/AlecAivazis/survey.v1/core"
 )
 
 func listProjects() ([]string, error) {
@@ -24,6 +25,13 @@ func listProjects() ([]string, error) {
 
 func promptProject(projects []string) (string, error) {
 	var p string
+
+	// customize survey visuals ideally these shouldn't be global
+	// see https://github.com/AlecAivazis/survey/issues/192
+	surveycore.QuestionIcon = questionPrefix
+	surveycore.ErrorIcon = errorPrefix
+	surveycore.SelectFocusIcon = questionSelectFocusIcon
+
 	if err := survey.AskOne(&survey.Select{
 		Message: "Choose a GCP project to deploy:",
 		Options: projects,

@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"log"
 	"os/exec"
 	"regexp"
 	"strings"
@@ -43,10 +42,9 @@ func repoDirName(repo string) (string, error) {
 
 func clone(gitRepo, dir string) error {
 	cmd := exec.Command("git", "clone", "--", gitRepo, dir)
-	log.Printf("Cloning repository %s", gitRepo)
 	b, err := cmd.CombinedOutput()
 	if err != nil {
-		return fmt.Errorf("could not clone git repository failed: %+v, output:\n%s", err, string(b))
+		return fmt.Errorf("git clone failed: %+v, output:\n%s", err, string(b))
 	}
 	return nil
 }

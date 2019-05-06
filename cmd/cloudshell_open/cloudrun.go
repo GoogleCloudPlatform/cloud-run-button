@@ -13,12 +13,9 @@ func deploy(project, name, image, region string) (string, error) {
 		"--image", image,
 		"--region", region,
 		"--allow-unauthenticated")
-
-	b, err := cmd.CombinedOutput()
-	if err != nil {
-		return "", fmt.Errorf("deployment to Cloud Run failed: %+v. output:\n%s", err, string(b))
+	if b, err := cmd.CombinedOutput(); err != nil {
+		return "", fmt.Errorf("failed to deploy to Cloud Run: %+v. output:\n%s", err, string(b))
 	}
-
 	return serviceURL(project, name, region)
 }
 
