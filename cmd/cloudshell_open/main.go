@@ -122,13 +122,36 @@ func run(c *cli.Context) error {
 	}
 
 	end = logProgress("Deploying the container image to Cloud Run...",
-		"Application deployed to Cloud Run.",
+		"Successfully deployed to Cloud Run.",
 		"Failed deploying the application to Cloud Run.")
-	url, err := deploy(project, repoName, image, defaultRunRegion)
+	region := defaultRunRegion
+	url, err := deploy(project, repoName, image, region)
 	end(err == nil)
 	if err != nil {
 		return err
 	}
-	fmt.Printf("Application now deployed! Visit your URL: %s\n", url)
+
+	fmt.Printf("%s %s %s\n\n",
+		completePrefix,
+		color.New(color.Bold).Sprint("Your application is now live at URL:"),
+		color.New(color.Bold, color.FgGreen, color.Underline).Sprint(url))
+
+	fmt.Println("Make a change to this application:")
+	color.HiBlue("\tcd %s\n\n", repoDir)
+
+	fmt.Println("Rebuild the application and push to Container Registry:")
+	color.HiBlue("\tdocker build -t %s .", image)
+	color.HiBlue("\tdocker push %s\n\n", image)
+
+	fmt.Println("Deploy the new version to Cloud Run:")
+	color.HiGreen("\t"+`gcloud beta run deploy %s
+	  --project=%s \
+	  --region=%s \
+	  --image=%s \
+	  --allow-unauthenticated`+"\n\n", repoName, project, region, image)
+
+	fmt.Println("Learn more about Cloud Run:")
+	color.New(color.Underline, color.Bold, color.FgBlue).Println("\thttps://cloud.google.com/run/docs")
+
 	return nil
 }
