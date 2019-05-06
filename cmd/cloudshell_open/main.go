@@ -18,8 +18,8 @@ const (
 )
 
 var (
-	completePrefix = fmt.Sprintf("[ %s ]", color.New(color.Bold, color.FgGreen).Sprint("✓"))
-	errorPrefix    = fmt.Sprintf("[ %s ]", color.New(color.Bold, color.FgRed).Sprint("✖"))
+	successPrefix = fmt.Sprintf("[ %s ]", color.New(color.Bold, color.FgGreen).Sprint("✓"))
+	errorPrefix   = fmt.Sprintf("[ %s ]", color.New(color.Bold, color.FgRed).Sprint("✖"))
 	// we have to reset the inherited color first from survey.QuestionIcon
 	// see https://github.com/AlecAivazis/survey/issues/193
 	questionPrefix = fmt.Sprintf("%s %s ]",
@@ -46,15 +46,14 @@ func main() {
 }
 
 func logProgress(msg, endMsg, errMsg string) func(bool) {
-	s := spinner.New(spinner.CharSets[9], 100*time.Millisecond)
+	s := spinner.New(spinner.CharSets[9], 300*time.Millisecond)
 	s.Prefix = "[ "
 	s.Suffix = " ] " + msg
 	s.Start()
 	return func(success bool) {
 		s.Stop()
 		if success {
-			fmt.Printf("%s %s\n", completePrefix,
-				color.New(color.Bold).Sprint(endMsg))
+			fmt.Printf("%s %s\n", successPrefix, endMsg)
 		} else {
 			fmt.Printf("%s %s\n", errorPrefix, errMsg)
 		}
@@ -62,10 +61,16 @@ func logProgress(msg, endMsg, errMsg string) func(bool) {
 }
 
 func run(c *cli.Context) error {
+
+	cmdColor := color.New(color.FgHiBlue)
+
 	repo := c.String(flRepoURL)
 	if repo == "" {
 		return fmt.Errorf("--%s not specified", flRepoURL)
 	}
+
+	highlight := func(s string) string { return color.CyanString(s) }
+	parameter := func(s string) string { return color.New(color.FgHiCyan, color.Bold, color.Underline).Sprint(s) }
 
 	end := logProgress("Retrieving your GCP projects...",
 		"Queried list of your GCP projects",
@@ -82,18 +87,19 @@ func run(c *cli.Context) error {
 		return err
 	}
 
-	end = logProgress("Enabling Cloud Run API...",
-		"Enabled Cloud Run API.",
-		"Failed to enable required APIs on your GCP project %q.")
+	end = logProgress(
+		fmt.Sprintf("Enabling Cloud Run API on project %s...", highlight(project)),
+		fmt.Sprintf("Enabled Cloud Run API on project %s.", highlight(project)),
+		fmt.Sprintf("Failed to enable required APIs on project %s.", highlight(project)))
 	err = enableAPIs(project, []string{"run.googleapis.com", "containerregistry.googleapis.com"})
 	end(err == nil)
 	if err != nil {
 		return err
 	}
 
-	end = logProgress(fmt.Sprintf("Cloning git repository %s...", repo),
-		fmt.Sprintf("Cloned git repository %s.", repo),
-		fmt.Sprintf("Failed to clone git repository %s", repo))
+	end = logProgress(fmt.Sprintf("Cloning git repository %s...", highlight(repo)),
+		fmt.Sprintf("Cloned git repository %s.", highlight(repo)),
+		fmt.Sprintf("Failed to clone git repository %s", highlight(repo)))
 	repoDir, err := handleRepo(repo)
 	end(err == nil)
 	if err != nil {
@@ -103,8 +109,8 @@ func run(c *cli.Context) error {
 	repoName := filepath.Base(repoDir)
 	image := fmt.Sprintf("gcr.io/%s/%s", project, repoName)
 
-	end = logProgress("Building container image...",
-		"Built container image.",
+	end = logProgress("Building the container image ...",
+		"Built the container image.",
 		"Failed to build the container image.")
 	err = build(repoDir, image)
 	end(err == nil)
@@ -112,9 +118,9 @@ func run(c *cli.Context) error {
 		return err
 	}
 
-	end = logProgress(fmt.Sprintf("Pushing the container image %s...", image),
-		fmt.Sprintf("Pushed container image %s to Google Container Registry.", image),
-		fmt.Sprintf("Failed to push container image %s to Google Container Registry.", image))
+	end = logProgress(fmt.Sprintf("Pushing the container image %s...", highlight(image)),
+		fmt.Sprintf("Pushed container image %s to Google Container Registry.", highlight(image)),
+		fmt.Sprintf("Failed to push container image %s to Google Container Registry.", highlight(image)))
 	err = push(image)
 	end(err == nil)
 	if err != nil {
@@ -125,33 +131,36 @@ func run(c *cli.Context) error {
 		"Successfully deployed to Cloud Run.",
 		"Failed deploying the application to Cloud Run.")
 	region := defaultRunRegion
-	url, err := deploy(project, repoName, image, region)
+	serviceName := repoName
+	url, err := deploy(project, serviceName, image, region)
 	end(err == nil)
 	if err != nil {
 		return err
 	}
 
 	fmt.Printf("%s %s %s\n\n",
-		completePrefix,
+		successPrefix,
 		color.New(color.Bold).Sprint("Your application is now live at URL:"),
 		color.New(color.Bold, color.FgGreen, color.Underline).Sprint(url))
 
 	fmt.Println("Make a change to this application:")
-	color.HiBlue("\tcd %s\n\n", repoDir)
+	cmdColor.Printf("\tcd %s\n\n", parameter(serviceName))
 
-	fmt.Println("Rebuild the application and push to Container Registry:")
-	color.HiBlue("\tdocker build -t %s .", image)
-	color.HiBlue("\tdocker push %s\n\n", image)
+	fmt.Println("Rebuild the container image and push to Container Registry:")
+	cmdColor.Printf("\tdocker build -t %s %s\n", parameter(image), parameter("."))
+	cmdColor.Printf("\tdocker push %s\n\n\n", parameter(image))
 
 	fmt.Println("Deploy the new version to Cloud Run:")
-	color.HiGreen("\t"+`gcloud beta run deploy %s
-	  --project=%s \
-	  --region=%s \
-	  --image=%s \
-	  --allow-unauthenticated`+"\n\n", repoName, project, region, image)
+	cmdColor.Printf("\tgcloud beta run deploy %s\n", parameter(serviceName))
+	cmdColor.Printf("\t --project=%s", parameter(project))
+	cmdColor.Printf(" \\\n")
+	cmdColor.Printf("\t --region=%s", parameter(region))
+	cmdColor.Printf(" \\\n")
+	cmdColor.Printf("\t --image=%s", parameter(image))
+	cmdColor.Printf(" \\\n")
+	cmdColor.Printf("\t --allow-unauthenticated\n\n")
 
-	fmt.Println("Learn more about Cloud Run:")
-	color.New(color.Underline, color.Bold, color.FgBlue).Println("\thttps://cloud.google.com/run/docs")
-
+	fmt.Printf("Learn more about Cloud Run:\n\t")
+	color.New(color.Underline, color.Bold).Println("https://cloud.google.com/run/docs")
 	return nil
 }
