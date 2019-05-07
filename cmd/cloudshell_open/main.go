@@ -20,9 +20,8 @@ import (
 	"path/filepath"
 	"time"
 
-	"github.com/fatih/color"
-
 	"github.com/briandowns/spinner"
+	"github.com/fatih/color"
 	"github.com/urfave/cli"
 )
 

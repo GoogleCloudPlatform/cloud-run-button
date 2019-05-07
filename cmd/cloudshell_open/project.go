@@ -40,13 +40,23 @@ func listProjects() ([]string, error) {
 func promptProject(projects []string) (string, error) {
 	// customize survey visuals ideally these shouldn't be global
 	// see https://github.com/AlecAivazis/survey/issues/192
+	// TODO(ahmetb): if the issue above is fixed, make the settings per-question
+	defer func(s string) {
+		surveycore.QuestionIcon = s
+	}(surveycore.QuestionIcon)
+	defer func(s string) {
+		surveycore.ErrorIcon = s
+	}(surveycore.ErrorIcon)
+	defer func(s string) {
+		surveycore.SelectFocusIcon = s
+	}(surveycore.SelectFocusIcon)
 	surveycore.QuestionIcon = questionPrefix
 	surveycore.ErrorIcon = errorPrefix
 	surveycore.SelectFocusIcon = questionSelectFocusIcon
 
 	var p string
 	if err := survey.AskOne(&survey.Select{
-		Message: "Choose a GCP project to deploy:",
+		Message: "Choose a Google Cloud Platform project to deploy:",
 		Options: projects,
 	}, &p, nil); err != nil {
 		return p, fmt.Errorf("could not choose a project: %+v", err)
