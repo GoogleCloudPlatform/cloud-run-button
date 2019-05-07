@@ -20,13 +20,14 @@ import (
 	"strings"
 )
 
-func deploy(project, name, image, region string) (string, error) {
+func deploy(project, name, image, region string, envs []string) (string, error) {
 	cmd := exec.Command("gcloud", "beta", "run", "deploy", "-q",
 		name,
 		"--project", project,
 		"--image", image,
 		"--region", region,
-		"--allow-unauthenticated")
+		"--allow-unauthenticated",
+		"--set-env-vars", strings.Join(envs, ","))
 	if b, err := cmd.CombinedOutput(); err != nil {
 		return "", fmt.Errorf("failed to deploy to Cloud Run: %+v. output:\n%s", err, string(b))
 	}

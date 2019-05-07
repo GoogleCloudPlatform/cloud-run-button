@@ -74,7 +74,8 @@ func logProgress(msg, endMsg, errMsg string) func(bool) {
 }
 
 func run(c *cli.Context) error {
-
+	highlight := func(s string) string { return color.CyanString(s) }
+	parameter := func(s string) string { return color.New(color.FgHiCyan, color.Bold, color.Underline).Sprint(s) }
 	cmdColor := color.New(color.FgHiBlue)
 
 	repo := c.String(flRepoURL)
@@ -82,10 +83,25 @@ func run(c *cli.Context) error {
 		return fmt.Errorf("--%s not specified", flRepoURL)
 	}
 
-	highlight := func(s string) string { return color.CyanString(s) }
-	parameter := func(s string) string { return color.New(color.FgHiCyan, color.Bold, color.Underline).Sprint(s) }
+	end := logProgress(fmt.Sprintf("Cloning git repository %s...", highlight(repo)),
+		fmt.Sprintf("Cloned git repository %s.", highlight(repo)),
+		fmt.Sprintf("Failed to clone git repository %s", highlight(repo)))
+	repoDir, err := handleRepo(repo)
+	end(err == nil)
+	if err != nil {
+		return err
+	}
 
-	end := logProgress("Retrieving your GCP projects...",
+	appFile, err := getAppFile(repoDir)
+	if err != nil {
+		return fmt.Errorf("error attempting to read the app.json from the cloned repository: %+v", err)
+	}
+	envs, err := promptEnv(appFile.Env)
+	if err != nil {
+		return err
+	}
+
+	end = logProgress("Retrieving your GCP projects...",
 		"Queried list of your GCP projects",
 		"Failed to retrieve your GCP projects.",
 	)
@@ -105,15 +121,6 @@ func run(c *cli.Context) error {
 		fmt.Sprintf("Enabled Cloud Run API on project %s.", highlight(project)),
 		fmt.Sprintf("Failed to enable required APIs on project %s.", highlight(project)))
 	err = enableAPIs(project, []string{"run.googleapis.com", "containerregistry.googleapis.com"})
-	end(err == nil)
-	if err != nil {
-		return err
-	}
-
-	end = logProgress(fmt.Sprintf("Cloning git repository %s...", highlight(repo)),
-		fmt.Sprintf("Cloned git repository %s.", highlight(repo)),
-		fmt.Sprintf("Failed to clone git repository %s", highlight(repo)))
-	repoDir, err := handleRepo(repo)
 	end(err == nil)
 	if err != nil {
 		return err
@@ -145,7 +152,7 @@ func run(c *cli.Context) error {
 		"Failed deploying the application to Cloud Run.")
 	region := defaultRunRegion
 	serviceName := repoName
-	url, err := deploy(project, serviceName, image, region)
+	url, err := deploy(project, serviceName, image, region, envs)
 	end(err == nil)
 	if err != nil {
 		return err
