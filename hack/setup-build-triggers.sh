@@ -52,10 +52,13 @@ create_trigger() {
         )"
     rm -rf "$tempfile"
 
-    if [[ "$http_status" -ne 200 ]]; then
-        echo "Failed to create build trigger, returned HTTP ${http_status}."
+    if [[ "$http_status" -eq 409 ]]; then
+        echo >&2 "$(tput setaf 3)WARNING: Build trigger already exists, not updating it.$(tput sgr0)"
+    elif [[ "$http_status" -ne 200 ]]; then
+        echo >&2 "$(tput setaf 1)Failed to create build trigger, returned HTTP ${http_status}.$(tput sgr0)"
         false
     fi
+    echo >&2 "$(tput setaf 2)Build trigger created.$(tput sgr0)"
 }
 
 main() {
@@ -63,11 +66,9 @@ main() {
 
     echo >&2 "$(tput setaf 3)Creating trigger for source code updates.$(tput sgr0)"
     self_trigger | create_trigger
-    echo >&2 "$(tput setaf 2)Done.$(tput sgr0)"
 
     echo >&2 "$(tput setaf 3)Creating trigger for Cloud Shell base image updates.$(tput sgr0)"
     base_image_trigger | create_trigger
-    echo >&2 "$(tput setaf 2)Done.$(tput sgr0)"
 }
 
 main "$@"
