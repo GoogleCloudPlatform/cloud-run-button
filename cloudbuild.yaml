@@ -1,0 +1,10 @@
+# Default cloudbuild.yaml for Cloud Shell custom images.
+# This file is used by the Cloud Build trigger that builds this image.
+
+steps:
+- name: 'gcr.io/cloud-builders/docker'
+  args: ['build', '-t', 'gcr.io/$PROJECT_ID/$REPO_NAME', '.']
+- name: 'gcr.io/cloudshell-images/custom-image-validation'
+  args: ['image_test.py', '--image', 'gcr.io/$PROJECT_ID/$REPO_NAME']
+images: ['gcr.io/$PROJECT_ID/$REPO_NAME']
+timeout: '1200s'
