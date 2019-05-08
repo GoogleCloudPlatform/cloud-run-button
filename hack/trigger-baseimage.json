@@ -1,4 +1,5 @@
 {
+  "id": "GCR_REPO_URL-baseimage",
   "description": "Triggers on changes to gcr.io/cloudshell-images/cloudshell:latest",
   "base_image": {
     "imageName": "gcr.io/cloudshell-images/cloudshell:latest"

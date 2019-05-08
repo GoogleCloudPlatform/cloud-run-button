@@ -19,6 +19,8 @@ CUSTOM_IMAGE="${CUSTOM_IMAGE:-gcr.io/"${PROJECT_ID}"/button}"
 self_trigger() {
     cat <<EOF
 {
+  "id": "GCR_REPO_URL-self",
+  "description": "Triggers on pushes to CSR repo ${CSR_REPO_NAME}",
   "trigger_template": {
     "repoName": "${CSR_REPO_NAME}",
     "branchName": "master"
@@ -59,12 +61,12 @@ create_trigger() {
 main() {
     echo >&2 "Setting up GCB triggers for image ${CUSTOM_IMAGE} on project ${PROJECT_ID}"
 
-    echo >&2 "$(tput setaf 3)Creating trigger for Cloud Shell base image updates.$(tput sgr0)"
-    base_image_trigger | create_trigger
-    echo >&2 "$(tput setaf 2)Done.$(tput sgr0)"
-
     echo >&2 "$(tput setaf 3)Creating trigger for source code updates.$(tput sgr0)"
     self_trigger | create_trigger
+    echo >&2 "$(tput setaf 2)Done.$(tput sgr0)"
+
+    echo >&2 "$(tput setaf 3)Creating trigger for Cloud Shell base image updates.$(tput sgr0)"
+    base_image_trigger | create_trigger
     echo >&2 "$(tput setaf 2)Done.$(tput sgr0)"
 }
 
