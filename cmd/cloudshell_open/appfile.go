@@ -34,7 +34,8 @@ type env struct {
 }
 
 type appFile struct {
-	Env map[string]env `json:"env"`
+	Name string         `json:"name"`
+	Env  map[string]env `json:"env"`
 }
 
 const appJSON = `app.json`

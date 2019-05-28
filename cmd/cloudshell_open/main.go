@@ -127,31 +127,35 @@ func run(c *cli.Context) error {
 	}
 
 	repoName := filepath.Base(repoDir)
-	image := fmt.Sprintf("gcr.io/%s/%s", project, repoName)
+	serviceName := repoName
+	if appFile.Name != "" {
+		serviceName = appFile.Name
+	}
 
-	end = logProgress("Building the container image ...",
-		"Built the container image.",
-		"Failed to build the container image.")
+	image := fmt.Sprintf("gcr.io/%s/%s", project, serviceName)
+	end = logProgress(fmt.Sprintf("Building container image %s...", highlight(image)),
+		fmt.Sprintf("Built container image %s.", highlight(image)),
+		"Failed to build container image.")
 	err = build(repoDir, image)
 	end(err == nil)
 	if err != nil {
 		return err
 	}
 
-	end = logProgress(fmt.Sprintf("Pushing the container image %s...", highlight(image)),
-		fmt.Sprintf("Pushed container image %s to Google Container Registry.", highlight(image)),
-		fmt.Sprintf("Failed to push container image %s to Google Container Registry.", highlight(image)))
+	end = logProgress("Pushing container image...",
+		"Pushed container image to Google Container Registry.",
+		"Failed to push container image to Google Container Registry.")
 	err = push(image)
 	end(err == nil)
 	if err != nil {
 		return fmt.Errorf("failed to push image to %s: %+v", image, err)
 	}
 
-	end = logProgress("Deploying the container image to Cloud Run...",
-		"Successfully deployed to Cloud Run.",
+	serviceLabel := highlight(serviceName)
+	end = logProgress(fmt.Sprintf("Deploying service %s to Cloud Run...", serviceLabel),
+		fmt.Sprintf("Successfully deployed service %s to Cloud Run.", serviceLabel),
 		"Failed deploying the application to Cloud Run.")
 	region := defaultRunRegion
-	serviceName := repoName
 	url, err := deploy(project, serviceName, image, region, envs)
 	end(err == nil)
 	if err != nil {
