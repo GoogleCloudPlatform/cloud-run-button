@@ -25,14 +25,17 @@ Cloud](https://storage.googleapis.com/cloudrun/button.svg)](https://console.clou
 1. Make sure the repository has a Dockerfile, so it can be built using the
    `docker build` command.
 
-### Accepting environment variables
+### Customizing deployment parameters
 
-If you need to prompt your users for some environment variables that can be used
-to customize the application, create an `app.json` file at the root of your
-repository, like:
+If you include an `app.json` at the root of your repository, it allows you
+customize the experience such as defining an alternative service name, or
+prompting for additional environment variables.
+
+For example:
 
 ```json
 {
+  "name": "foo-app",
   "env": {
       "BACKGROUND_COLOR": {
           "description": "specify a css color",
@@ -46,13 +49,16 @@ repository, like:
 }
 ```
 
-The allowed properties on the `env` field are:
+Reference:
 
-- `description`:  _(optional)_ short explanation of what the environment
-  variable does, keep this short to make sure it fits into a line.
-- `value`: _(optional)_ default value for the variable, should be a string.
-- `required`, _(optional, default: `true`)_ indicaes if they user must provide
-  a value for this variable.
+- `name`: _(optional, default: repo name)_ Name of the Cloud Run service and the
+  built container image. Not validated for naming restrictions.
+- `env`: _(optional)_ Prompt user for environment variables.
+  - `description`:  _(optional)_ short explanation of what the environment
+    variable does, keep this short to make sure it fits into a line.
+  - `value`: _(optional)_ default value for the variable, should be a string.
+  - `required`, _(optional, default: `true`)_ indicaes if they user must provide
+    a value for this variable.
 
 ### Notes
 

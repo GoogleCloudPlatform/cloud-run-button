@@ -112,6 +112,7 @@ func Test_parseAppFile(t *testing.T) {
 		{"value has to be string", `{
 			"env": {"KEY":{"value": 100}}}`, nil, true},
 		{"parses ok", `{
+			"name": "foo",
 			"env": {
 				"KEY_1": {
 					"required": false,
@@ -121,16 +122,18 @@ func Test_parseAppFile(t *testing.T) {
 					"value": "k2"
 				}
 			}}`,
-			&appFile{Env: map[string]env{
-				"KEY_1": env{
-					Required:    &fals,
-					Description: "key 1 is cool",
-				},
-				"KEY_2": env{
-					Value:    "k2",
-					Required: &tru,
-				},
-			}}, false},
+			&appFile{
+				Name: "foo",
+				Env: map[string]env{
+					"KEY_1": env{
+						Required:    &fals,
+						Description: "key 1 is cool",
+					},
+					"KEY_2": env{
+						Value:    "k2",
+						Required: &tru,
+					},
+				}}, false},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
