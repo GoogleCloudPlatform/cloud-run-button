@@ -18,6 +18,7 @@ import (
 	"fmt"
 	"os/exec"
 	"strings"
+	"unicode"
 )
 
 func deploy(project, name, image, region string, envs []string) (string, error) {
@@ -45,4 +46,27 @@ func serviceURL(project, name, region string) (string, error) {
 		return "", fmt.Errorf("deployment to Cloud Run failed: %+v. output:\n%s", err, string(b))
 	}
 	return strings.TrimSpace(string(b)), nil
+}
+
+// tryFixServiceName attempts replace the service name with a better one to
+// prevent deployment failures due to Cloud Run service naming constraints such
+// as:
+//
+//   * names with a leading non-letter (e.g. digit or '-') are prefixed
+//   * names over 63 characters are truncated
+//   * names ending with a '-' have the suffix trimmed
+func tryFixServiceName(name string) string {
+	if name == "" {
+		return name
+	}
+	if !unicode.IsLetter([]rune(name)[0]) {
+		name = fmt.Sprintf("svc-%s", name)
+	}
+	if len(name) > 63 {
+		name = name[:63]
+	}
+	for name[len(name)-1] == '-' {
+		name = name[:len(name)-1]
+	}
+	return name
 }
