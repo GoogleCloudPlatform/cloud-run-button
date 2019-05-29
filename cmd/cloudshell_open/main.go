@@ -131,6 +131,7 @@ func run(c *cli.Context) error {
 	if appFile.Name != "" {
 		serviceName = appFile.Name
 	}
+	serviceName = tryFixServiceName(serviceName)
 
 	image := fmt.Sprintf("gcr.io/%s/%s", project, serviceName)
 	end = logProgress(fmt.Sprintf("Building container image %s...", highlight(image)),
