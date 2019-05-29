@@ -156,11 +156,20 @@ func run(c *cli.Context) error {
 		return err
 	}
 
+	if len(projects) == 0 {
+		fmt.Printf("%s %s Your Google Cloud Platform account has no projects!\n"+
+			"Create a new GCP project at %s\n"+
+			"and refresh this window to continue deploying this application.\n",
+			errorPrefix,
+			color.New(color.FgRed, color.Bold).Sprintf("Error:"),
+			color.New(color.Bold, color.Underline).Sprint("https://console.cloud.google.com/cloud-resource-manager"),
+		)
+		return errors.New("aborting, no GCP projects available")
+	}
 	project, err := promptProject(projects)
 	if err != nil {
 		return err
 	}
-
 	end = logProgress(
 		fmt.Sprintf("Enabling Cloud Run API on project %s...", highlight(project)),
 		fmt.Sprintf("Enabled Cloud Run API on project %s.", highlight(project)),
