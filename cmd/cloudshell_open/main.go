@@ -27,6 +27,7 @@ import (
 
 const (
 	flRepoURL        = "repo_url"
+	flSubDir         = "dir"
 	defaultRunRegion = "us-central1"
 )
 
@@ -48,7 +49,12 @@ func main() {
 	app.Description = "Specialized cloudshell_open for the Cloud Run Button"
 	app.Flags = []cli.Flag{
 		cli.StringFlag{
-			Name: flRepoURL,
+			Name:  flRepoURL,
+			Usage: "url to git repo",
+		},
+		cli.StringFlag{
+			Name:  flSubDir,
+			Usage: "(optional) sub-directory to deploy in the repo",
 		},
 	}
 	app.Action = run
@@ -86,13 +92,27 @@ func run(c *cli.Context) error {
 	end := logProgress(fmt.Sprintf("Cloning git repository %s...", highlight(repo)),
 		fmt.Sprintf("Cloned git repository %s.", highlight(repo)),
 		fmt.Sprintf("Failed to clone git repository %s", highlight(repo)))
-	repoDir, err := handleRepo(repo)
+	cloneDir, err := handleRepo(repo)
 	end(err == nil)
 	if err != nil {
 		return err
 	}
 
-	appFile, err := getAppFile(repoDir)
+	appDir := cloneDir
+	if subDir := c.String(flSubDir); subDir != "" {
+		// verify if --dir is valid
+		appDir = filepath.Join(cloneDir, subDir)
+		if fi, err := os.Stat(appDir); err != nil {
+			if os.IsNotExist(err) {
+				return fmt.Errorf("sub-directory doesn't exist in the cloned repository: %s", appDir)
+			}
+			return fmt.Errorf("failed to check sub-directory in the repo: %v", err)
+		} else if !fi.IsDir() {
+			return fmt.Errorf("specified sub-directory path %s is not a directory", appDir)
+		}
+	}
+
+	appFile, err := getAppFile(appDir)
 	if err != nil {
 		return fmt.Errorf("error attempting to read the app.json from the cloned repository: %+v", err)
 	}
@@ -126,7 +146,7 @@ func run(c *cli.Context) error {
 		return err
 	}
 
-	repoName := filepath.Base(repoDir)
+	repoName := filepath.Base(appDir)
 	serviceName := repoName
 	if appFile.Name != "" {
 		serviceName = appFile.Name
@@ -137,7 +157,7 @@ func run(c *cli.Context) error {
 	end = logProgress(fmt.Sprintf("Building container image %s...", highlight(image)),
 		fmt.Sprintf("Built container image %s.", highlight(image)),
 		"Failed to build container image.")
-	err = build(repoDir, image)
+	err = build(appDir, image)
 	end(err == nil)
 	if err != nil {
 		return err
@@ -169,7 +189,7 @@ func run(c *cli.Context) error {
 		color.New(color.Bold, color.FgGreen, color.Underline).Sprint(url))
 
 	fmt.Println("Make a change to this application:")
-	cmdColor.Printf("\tcd %s\n\n", parameter(serviceName))
+	cmdColor.Printf("\tcd %s\n\n", parameter(appDir))
 
 	fmt.Println("Rebuild the container image and push to Container Registry:")
 	cmdColor.Printf("\tdocker build -t %s %s\n", parameter(image), parameter("."))
