@@ -18,6 +18,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"testing"
 )
@@ -95,4 +96,33 @@ func TestClone(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestGitCheckout(t *testing.T) {
+	tmpDir, err := ioutil.TempDir(os.TempDir(), "checkout-test")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer os.RemoveAll(tmpDir)
+
+	run := func(tt *testing.T, cmd string, args ...string) {
+		tt.Helper()
+		c := exec.Command(cmd, args...)
+		c.Dir = tmpDir
+		if b, err := c.CombinedOutput(); err != nil {
+			t.Fatalf("%s %v failed: %+v\n%s", cmd, args, err, string(b))
+		}
+	}
+
+	run(t, "git", "init", ".")
+	run(t, "git", "commit", "--allow-empty", "--message", "initial commit")
+	run(t, "git", "branch", "foo")
+
+	if err := gitCheckout(tmpDir, "master"); err != nil {
+		t.Fatal(err)
+	}
+	if err := gitCheckout(tmpDir, "foo"); err != nil {
+		t.Fatal(err)
+	}
+
 }
