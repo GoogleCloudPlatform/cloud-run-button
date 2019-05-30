@@ -15,8 +15,12 @@
 package main
 
 import (
+	"bytes"
+	"errors"
 	"fmt"
+	"log"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"time"
 
@@ -32,8 +36,9 @@ const (
 )
 
 var (
+	errorLabel    = color.New(color.FgRed, color.Bold)
 	successPrefix = fmt.Sprintf("[ %s ]", color.New(color.Bold, color.FgGreen).Sprint("✓"))
-	errorPrefix   = fmt.Sprintf("[ %s ]", color.New(color.Bold, color.FgRed).Sprint("✖"))
+	errorPrefix   = fmt.Sprintf("[ %s ]", errorLabel.Sprint("✖"))
 	// we have to reset the inherited color first from survey.QuestionIcon
 	// see https://github.com/AlecAivazis/survey/issues/193
 	questionPrefix = fmt.Sprintf("%s %s ]",
@@ -59,7 +64,7 @@ func main() {
 	}
 	app.Action = run
 	if err := app.Run(os.Args); err != nil {
-		fmt.Printf("%s %+v\n", color.New(color.FgRed, color.Bold).Sprint("Error:"), err)
+		fmt.Printf("%s %+v\n", errorLabel.Sprint("Error:"), err)
 		os.Exit(1)
 	}
 }
@@ -87,6 +92,16 @@ func run(c *cli.Context) error {
 	repo := c.String(flRepoURL)
 	if repo == "" {
 		return fmt.Errorf("--%s not specified", flRepoURL)
+	}
+
+	log.Printf("checking if cloud shell is trusted")
+	if trusted, err := checkCloudShellTrusted(); err != nil {
+		return err
+	} else if !trusted {
+		fmt.Printf("%s You launched this custom Cloud Shell image as \"Do not trust\".\n"+
+			"In this mode, your credentials are not available and this experience\n"+
+			"cannot deploy to Cloud Run. Start over and \"Trust\" the image.\n", errorLabel.Sprint("Error:"))
+		return errors.New("aborting due to untrusted cloud shell environment")
 	}
 
 	end := logProgress(fmt.Sprintf("Cloning git repository %s...", highlight(repo)),
@@ -208,4 +223,19 @@ func run(c *cli.Context) error {
 	fmt.Printf("Learn more about Cloud Run:\n\t")
 	color.New(color.Underline, color.Bold).Println("https://cloud.google.com/run/docs")
 	return nil
+}
+
+// checkCloudShellTrusted makes an API call to see if the current Cloud Shell
+// account is trusted. There's no cleaner way to do this currently
+// (bug/134073683). Ideally this would not happen since this image would be trusted,
+// but keeping it for dev/test scenarios.
+func checkCloudShellTrusted() (bool, error) {
+	b, err := exec.Command("gcloud", "organizations", "list", "-q").CombinedOutput()
+	if err == nil {
+		return true, nil
+	}
+	if bytes.Contains(b, []byte("PERMISSION_DENIED")) {
+		return false, nil
+	}
+	return false, fmt.Errorf("error determining if cloud shell is trusted: %+v. output=\n%s", err, string(b))
 }
