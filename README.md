@@ -51,8 +51,9 @@ For example:
 
 Reference:
 
-- `name`: _(optional, default: repo name)_ Name of the Cloud Run service and the
-  built container image. Not validated for naming restrictions.
+- `name`: _(optional, default: repo name, or sub-directory name if specified)_
+  Name of the Cloud Run service and the built container image. Not validated for
+  naming restrictions.
 - `env`: _(optional)_ Prompt user for environment variables.
   - `description`:  _(optional)_ short explanation of what the environment
     variable does, keep this short to make sure it fits into a line.
