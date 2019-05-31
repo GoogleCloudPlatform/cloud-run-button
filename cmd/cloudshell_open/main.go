@@ -15,6 +15,7 @@
 package main
 
 import (
+	"bufio"
 	"bytes"
 	"errors"
 	"fmt"
@@ -38,6 +39,7 @@ const (
 
 var (
 	errorLabel    = color.New(color.FgRed, color.Bold)
+	warningLabel  = color.New(color.Bold, color.FgHiYellow)
 	successPrefix = fmt.Sprintf("[ %s ]", color.New(color.Bold, color.FgGreen).Sprint("✓"))
 	errorPrefix   = fmt.Sprintf("[ %s ]", errorLabel.Sprint("✖"))
 	// we have to reset the inherited color first from survey.QuestionIcon
@@ -146,26 +148,29 @@ func run(c *cli.Context) error {
 		return err
 	}
 
-	end = logProgress("Retrieving your GCP projects...",
-		"Queried list of your GCP projects",
-		"Failed to retrieve your GCP projects.",
-	)
-	projects, err := listProjects()
-	end(err == nil)
-	if err != nil {
-		return err
+	var projects []string
+
+	for len(projects) == 0 {
+		end = logProgress("Retrieving your GCP projects...",
+			"Queried list of your GCP projects",
+			"Failed to retrieve your GCP projects.",
+		)
+		projects, err = listProjects()
+		end(err == nil)
+		if err != nil {
+			return err
+		}
+
+		if len(projects) == 0 {
+			fmt.Print(errorPrefix+" "+
+				warningLabel.Sprint("You don't have any GCP projects to deploy into!")+
+				"\n  1. Visit "+color.New(color.Bold, color.Underline).Sprint("https://console.cloud.google.com/cloud-resource-manager"),
+				"\n  2. Create a new GCP project with a billing account",
+				"\n  3. Once you're done, press "+color.New(color.Bold).Sprint("Enter")+" to continue: ")
+			bufio.NewReader(os.Stdin).ReadBytes('\n')
+		}
 	}
 
-	if len(projects) == 0 {
-		fmt.Printf("%s %s Your Google Cloud Platform account has no projects!\n"+
-			"Create a new GCP project at %s\n"+
-			"and refresh this window to continue deploying this application.\n",
-			errorPrefix,
-			color.New(color.FgRed, color.Bold).Sprintf("Error:"),
-			color.New(color.Bold, color.Underline).Sprint("https://console.cloud.google.com/cloud-resource-manager"),
-		)
-		return errors.New("aborting, no GCP projects available")
-	}
 	project, err := promptProject(projects)
 	if err != nil {
 		return err

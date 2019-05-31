@@ -41,9 +41,8 @@ func listProjects() ([]string, error) {
 }
 
 func promptProject(projects []string) (string, error) {
-
 	if len(projects) == 0 {
-		return "", errors.New("account has no GCP projects")
+		return "", errors.New("cannot prompt with an empty list of projects")
 	} else if len(projects) == 1 {
 		ok, err := confirmProject(projects[0])
 		if err != nil {
