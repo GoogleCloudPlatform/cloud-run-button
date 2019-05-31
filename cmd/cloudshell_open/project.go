@@ -16,10 +16,13 @@ package main
 
 import (
 	"bytes"
+	"errors"
 	"fmt"
 	"os/exec"
 	"sort"
 	"strings"
+
+	"github.com/fatih/color"
 
 	"gopkg.in/AlecAivazis/survey.v1"
 	surveycore "gopkg.in/AlecAivazis/survey.v1/core"
@@ -38,6 +41,42 @@ func listProjects() ([]string, error) {
 }
 
 func promptProject(projects []string) (string, error) {
+
+	if len(projects) == 0 {
+		return "", errors.New("account has no GCP projects")
+	} else if len(projects) == 1 {
+		ok, err := confirmProject(projects[0])
+		if err != nil {
+			return "", err
+		} else if !ok {
+			return "", fmt.Errorf("not allowed to use project %s", projects[0])
+		}
+		return projects[0], nil
+	}
+	return promptMultipleProjects(projects)
+}
+
+func confirmProject(project string) (bool, error) {
+	// customize survey visuals ideally these shouldn't be global
+	// see https://github.com/AlecAivazis/survey/issues/192
+	// TODO(ahmetb): if the issue above is fixed, make the settings per-question
+	defer func(s string) {
+		surveycore.QuestionIcon = s
+	}(surveycore.QuestionIcon)
+	surveycore.QuestionIcon = questionPrefix
+
+	var ok bool
+	projectLabel := color.New(color.Bold, color.FgHiCyan).Sprint(project)
+	if err := survey.AskOne(&survey.Confirm{
+		Default: true,
+		Message: fmt.Sprintf("Would you like to use existing GCP project %v to deploy this app?", projectLabel),
+	}, &ok, nil); err != nil {
+		return false, fmt.Errorf("could not prompt for confirmation using project %s: %+v", project, err)
+	}
+	return ok, nil
+}
+
+func promptMultipleProjects(projects []string) (string, error) {
 	// customize survey visuals ideally these shouldn't be global
 	// see https://github.com/AlecAivazis/survey/issues/192
 	// TODO(ahmetb): if the issue above is fixed, make the settings per-question
