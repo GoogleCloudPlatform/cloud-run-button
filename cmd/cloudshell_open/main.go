@@ -18,7 +18,6 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
-	"log"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -30,8 +29,10 @@ import (
 )
 
 const (
-	flRepoURL        = "repo_url"
-	flSubDir         = "dir"
+	flRepoURL   = "repo_url"
+	flGitBranch = "git_branch"
+	flSubDir    = "dir"
+
 	defaultRunRegion = "us-central1"
 )
 
@@ -50,12 +51,16 @@ var (
 func main() {
 	app := cli.NewApp()
 	app.Name = "cloudshell_open"
-	app.Usage = "This tool is only meant to be invoked by Google Cloud Shell"
+	app.Usage = "This tool is only meant to be invoked by Google Cloud Shell."
 	app.Description = "Specialized cloudshell_open for the Cloud Run Button"
 	app.Flags = []cli.Flag{
 		cli.StringFlag{
 			Name:  flRepoURL,
 			Usage: "url to git repo",
+		},
+		cli.StringFlag{
+			Name:  flGitBranch,
+			Usage: "(optional) branch/revision to use from the git repo",
 		},
 		cli.StringFlag{
 			Name:  flSubDir,
@@ -94,7 +99,6 @@ func run(c *cli.Context) error {
 		return fmt.Errorf("--%s not specified", flRepoURL)
 	}
 
-	log.Printf("checking if cloud shell is trusted")
 	if trusted, err := checkCloudShellTrusted(); err != nil {
 		return err
 	} else if !trusted {
@@ -111,6 +115,12 @@ func run(c *cli.Context) error {
 	end(err == nil)
 	if err != nil {
 		return err
+	}
+
+	if gitRev := c.String(flGitBranch); gitRev != "" {
+		if err := gitCheckout(cloneDir, gitRev); err != nil {
+			return fmt.Errorf("failed to checkout revision %q: %+v", gitRev, err)
+		}
 	}
 
 	appDir := cloneDir

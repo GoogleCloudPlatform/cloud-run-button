@@ -58,7 +58,7 @@ func promptProject(projects []string) (string, error) {
 	if err := survey.AskOne(&survey.Select{
 		Message: "Choose a Google Cloud Platform project to deploy:",
 		Options: projects,
-	}, &p, nil); err != nil {
+	}, &p, survey.Required); err != nil {
 		return p, fmt.Errorf("could not choose a project: %+v", err)
 	}
 	return p, nil

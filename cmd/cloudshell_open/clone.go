@@ -62,3 +62,13 @@ func clone(gitRepo, dir string) error {
 	}
 	return nil
 }
+
+func gitCheckout(dir, rev string) error {
+	cmd := exec.Command("git", "checkout", "-q", "-f", rev)
+	cmd.Dir = dir
+	b, err := cmd.CombinedOutput()
+	if err != nil {
+		return fmt.Errorf("git checkout failed: %+v, output:\n%s", err, string(b))
+	}
+	return nil
+}
