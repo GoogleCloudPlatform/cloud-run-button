@@ -35,13 +35,16 @@ const (
 	flSubDir    = "dir"
 
 	defaultRunRegion = "us-central1"
+	projectCreateURL = "https://console.cloud.google.com/cloud-resource-manager"
 )
 
 var (
-	errorLabel    = color.New(color.FgRed, color.Bold)
-	warningLabel  = color.New(color.Bold, color.FgHiYellow)
-	successPrefix = fmt.Sprintf("[ %s ]", color.New(color.Bold, color.FgGreen).Sprint("✓"))
-	errorPrefix   = fmt.Sprintf("[ %s ]", errorLabel.Sprint("✖"))
+	linkLabel      = color.New(color.Bold, color.Underline)
+	parameterLabel = color.New(color.FgHiCyan, color.Bold, color.Underline)
+	errorLabel     = color.New(color.FgRed, color.Bold)
+	warningLabel   = color.New(color.Bold, color.FgHiYellow)
+	successPrefix  = fmt.Sprintf("[ %s ]", color.New(color.Bold, color.FgGreen).Sprint("✓"))
+	errorPrefix    = fmt.Sprintf("[ %s ]", errorLabel.Sprint("✖"))
 	// we have to reset the inherited color first from survey.QuestionIcon
 	// see https://github.com/AlecAivazis/survey/issues/193
 	questionPrefix = fmt.Sprintf("%s %s ]",
@@ -93,7 +96,7 @@ func logProgress(msg, endMsg, errMsg string) func(bool) {
 
 func run(c *cli.Context) error {
 	highlight := func(s string) string { return color.CyanString(s) }
-	parameter := func(s string) string { return color.New(color.FgHiCyan, color.Bold, color.Underline).Sprint(s) }
+	parameter := func(s string) string { return parameterLabel.Sprint(s) }
 	cmdColor := color.New(color.FgHiBlue)
 
 	repo := c.String(flRepoURL)
@@ -164,9 +167,9 @@ func run(c *cli.Context) error {
 		if len(projects) == 0 {
 			fmt.Print(errorPrefix+" "+
 				warningLabel.Sprint("You don't have any GCP projects to deploy into!")+
-				"\n  1. Visit "+color.New(color.Bold, color.Underline).Sprint("https://console.cloud.google.com/cloud-resource-manager"),
+				"\n  1. Visit "+linkLabel.Sprint(projectCreateURL),
 				"\n  2. Create a new GCP project with a billing account",
-				"\n  3. Once you're done, press "+color.New(color.Bold).Sprint("Enter")+" to continue: ")
+				"\n  3. Once you're done, press "+parameterLabel.Sprint("Enter")+" to continue: ")
 			bufio.NewReader(os.Stdin).ReadBytes('\n')
 		}
 	}
@@ -175,6 +178,18 @@ func run(c *cli.Context) error {
 	if err != nil {
 		return err
 	}
+
+	if err := waitForBilling(project, func(p string) {
+		fmt.Print(errorPrefix+" "+
+			warningLabel.Sprint("GCP project you chose does not have an active billing account!")+
+			"\n  1. Visit "+linkLabel.Sprint(projectCreateURL),
+			"\n  2. Associate a billing account for project "+parameterLabel.Sprint(p),
+			"\n  3. Once you're done, press "+parameterLabel.Sprint("Enter")+" to continue: ")
+		bufio.NewReader(os.Stdin).ReadBytes('\n')
+	}); err != nil {
+		return err
+	}
+
 	end = logProgress(
 		fmt.Sprintf("Enabling Cloud Run API on project %s...", highlight(project)),
 		fmt.Sprintf("Enabled Cloud Run API on project %s.", highlight(project)),
@@ -262,4 +277,17 @@ func checkCloudShellTrusted() (bool, error) {
 		return false, nil
 	}
 	return false, fmt.Errorf("error determining if cloud shell is trusted: %+v. output=\n%s", err, string(b))
+}
+
+func waitForBilling(projectID string, prompt func(string)) error {
+	for {
+		ok, err := checkBillingEnabled(projectID)
+		if err != nil {
+			return err
+		}
+		if ok {
+			return nil
+		}
+		prompt(projectID)
+	}
 }
