@@ -43,7 +43,7 @@ For example:
           "required": false
       },
       "TITLE": {
-          "description": "title for your site",
+          "description": "title for your site"
       }
   }
 }
