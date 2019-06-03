@@ -43,8 +43,10 @@ var (
 	parameterLabel = color.New(color.FgHiCyan, color.Bold, color.Underline)
 	errorLabel     = color.New(color.FgRed, color.Bold)
 	warningLabel   = color.New(color.Bold, color.FgHiYellow)
-	successPrefix  = fmt.Sprintf("[ %s ]", color.New(color.Bold, color.FgGreen).Sprint("✓"))
+	successLabel   = color.New(color.Bold, color.FgGreen)
+	successPrefix  = fmt.Sprintf("[ %s ]", successLabel.Sprint("✓"))
 	errorPrefix    = fmt.Sprintf("[ %s ]", errorLabel.Sprint("✖"))
+	infoPrefix     = fmt.Sprintf("[ %s ]", warningLabel.Sprint("!"))
 	// we have to reset the inherited color first from survey.QuestionIcon
 	// see https://github.com/AlecAivazis/survey/issues/193
 	questionPrefix = fmt.Sprintf("%s %s ]",
@@ -172,6 +174,11 @@ func run(c *cli.Context) error {
 				"\n  3. Once you're done, press "+parameterLabel.Sprint("Enter")+" to continue: ")
 			bufio.NewReader(os.Stdin).ReadBytes('\n')
 		}
+	}
+
+	if len(projects) > 1 {
+		fmt.Printf(successPrefix+" Found %s projects in your GCP account.\n",
+			successLabel.Sprintf("%d", len(projects)))
 	}
 
 	project, err := promptProject(projects)
