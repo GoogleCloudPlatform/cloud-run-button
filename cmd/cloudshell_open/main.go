@@ -34,7 +34,6 @@ const (
 	flGitBranch = "git_branch"
 	flSubDir    = "dir"
 
-	defaultRunRegion = "us-central1"
 	projectCreateURL = "https://console.cloud.google.com/cloud-resource-manager"
 )
 
@@ -263,6 +262,8 @@ func run(c *cli.Context) error {
 	cmdColor.Printf("\t --region=%s", parameter(region))
 	cmdColor.Printf(" \\\n")
 	cmdColor.Printf("\t --image=%s", parameter(image))
+	cmdColor.Printf(" \\\n")
+	cmdColor.Printf("\t --memory=%s", parameter(defaultRunMemory))
 	cmdColor.Printf(" \\\n")
 	cmdColor.Printf("\t --allow-unauthenticated\n\n")
 
