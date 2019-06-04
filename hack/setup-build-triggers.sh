@@ -7,14 +7,17 @@
 set -euo pipefail
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
-# GCP project ID hosting the custom Cloud Shell image and GCB trigger
-PROJECT_ID="${PROJECT_ID:-ahmetb-samples-playground}"
+# GCP project ID that has the Cloud Shell image for button and GCB trigger
+# For PROD, use PROJECT_ID="cloudrun".
+PROJECT_ID="${PROJECT_ID:?PROJECT_ID environment variable is not set}"
 
 # Cloud Source Repositories (CSR) repo name hosting the source code
-CSR_REPO_NAME="${CSR_REPO_NAME:-cloud-shell-button}"
+# For PROD, point to the CSR repo at https://source.cloud.google.com/cloudrun
+# mirroring the source code.
+CSR_REPO_NAME="${CSR_REPO_NAME:?CSR_REPO_NAME environment variable is not set}"
 
 # Image name for the custom Cloud Shell image
-CUSTOM_IMAGE="${CUSTOM_IMAGE:-gcr.io/"${PROJECT_ID}"/button}"
+IMAGE="${IMAGE:-gcr.io/"${PROJECT_ID}"/button}"
 
 self_trigger() {
     cat <<EOF
@@ -32,7 +35,7 @@ EOF
 
 base_image_trigger() {
         sed "s,CSR_REPO_NAME,${CSR_REPO_NAME},g" "${SCRIPT_DIR}/trigger-baseimage.json" | \
-        sed "s,GCR_REPO_URL,${CUSTOM_IMAGE},g"
+        sed "s,GCR_REPO_URL,${IMAGE},g"
 }
 
 create_trigger() {
@@ -62,7 +65,15 @@ create_trigger() {
 }
 
 main() {
-    echo >&2 "Setting up GCB triggers for image ${CUSTOM_IMAGE} on project ${PROJECT_ID}"
+    # TODO(ahmetb): Since we use baseimage trigger on GCB which is currently a
+    # private API, this can be only invoked from a Cloud Shell VM with a
+    # @google.com account. Once it's public API, this check would be obsolete.
+    if ! command -v cloudshell >/dev/null 2>&1; then
+        echo >&2 "error: this script should be executed from a Google Cloud Shell."
+        exit 1
+    fi
+
+    echo >&2 "Setting up GCB triggers for image ${IMAGE} on project ${PROJECT_ID}"
 
     echo >&2 "$(tput setaf 3)Creating trigger for source code updates.$(tput sgr0)"
     self_trigger | create_trigger
