@@ -21,12 +21,18 @@ import (
 	"unicode"
 )
 
+const (
+	defaultRunRegion = "us-central1"
+	defaultRunMemory = "512Mi"
+)
+
 func deploy(project, name, image, region string, envs []string) (string, error) {
 	cmd := exec.Command("gcloud", "beta", "run", "deploy", "-q",
 		name,
 		"--project", project,
 		"--image", image,
 		"--region", region,
+		"--memory", defaultRunMemory,
 		"--allow-unauthenticated",
 		"--set-env-vars", strings.Join(envs, ","))
 	if b, err := cmd.CombinedOutput(); err != nil {
