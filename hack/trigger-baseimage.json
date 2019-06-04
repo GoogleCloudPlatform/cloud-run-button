@@ -13,7 +13,7 @@
     },
     "timeout": "1200s",
     "images": [
-      "GCR_REPO_URL:latest"
+      "GCR_REPO_URL"
     ],
     "steps": [
       {
@@ -21,7 +21,7 @@
         "args": [
           "build",
           "-t",
-          "gcr.io/$PROJECT_ID/$REPO_NAME",
+          "GCR_REPO_URL",
           "."
         ]
       },
@@ -30,7 +30,7 @@
         "args": [
           "image_test.py",
           "--image",
-          "gcr.io/$PROJECT_ID/$REPO_NAME"
+          "GCR_REPO_URL"
         ]
       }
     ]
