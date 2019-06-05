@@ -6,10 +6,10 @@ click.
 
 [run]: https://cloud.google.com/run
 
-Try it out:
+Try it out with a simple web server ([source](https://github.com/jamesward/hello-netcat)):
 
 [![Run on Google
-Cloud](https://storage.googleapis.com/cloudrun/button.svg)](https://console.cloud.google.com/cloudshell/editor?shellonly=true&cloudshell_image=gcr.io/cloudrun/button&cloudshell_git_repo=https://github.com/jamesward/cloud-run-button.git)
+Cloud](https://storage.googleapis.com/cloudrun/button.svg)](https://console.cloud.google.com/cloudshell/editor?shellonly=true&cloudshell_image=gcr.io/cloudrun/button&cloudshell_git_repo=https://github.com/jamesward/hello-netcat.git)
 
 ### Instructions
 
@@ -20,7 +20,7 @@ Cloud](https://storage.googleapis.com/cloudrun/button.svg)](https://console.clou
     ```
 
 1. Replace `YOUR_HTTP_GIT_URL` with your HTTP git URL, like:
-   `https://github.com/jamesward/hello-kotlin-ktor.git`
+   `https://github.com/jamesward/hello-netcat.git`
 
 1. Make sure the repository has a Dockerfile, so it can be built using the
    `docker build` command.
