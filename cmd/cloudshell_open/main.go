@@ -241,12 +241,12 @@ func run(c *cli.Context) error {
 	region := defaultRunRegion
 
 	fmt.Println(infoPrefix + " Will run command:")
-	cmdColor.Printf("\tgcloud beta run deploy %s \\\n", serviceLabel)
+	cmdColor.Printf("\tgcloud beta run deploy %s \\\n", parameter(serviceName))
 	cmdColor.Printf("\t  --project=%s \\\n", parameter(project))
 	cmdColor.Printf("\t  --region=%s \\\n", parameter(region))
 	cmdColor.Printf("\t  --image=%s \\\n", parameter(image))
 	cmdColor.Printf("\t  --memory=%s \\\n", parameter(defaultRunMemory))
-	cmdColor.Printf("\t  --allow-unauthenticated\n\n")
+	cmdColor.Printf("\t  --allow-unauthenticated\n")
 
 	end = logProgress(fmt.Sprintf("Deploying service %s to Cloud Run...", serviceLabel),
 		fmt.Sprintf("Successfully deployed service %s to Cloud Run.", serviceLabel),
@@ -258,14 +258,13 @@ func run(c *cli.Context) error {
 	}
 
 	fmt.Printf(successPrefix+" %s %s\n\n",
-		color.New(color.Bold).Sprint("Your application is now live at URL:"),
+		color.New(color.Bold).Sprint("Your application is now live here:\n\t"),
 		color.New(color.Bold, color.FgGreen, color.Underline).Sprint(url))
 
-	fmt.Println("This application is billed only when it's handling requests.")
-	fmt.Printf("Manage this application at Cloud Console:\n\t")
-	color.New(color.Underline, color.Bold).Printf("https://console.cloud.google.com/run?project=%s\n\n", project)
-
-	fmt.Printf("Learn more about Cloud Run:\n\t")
+	fmt.Printf("* This application is billed only when it's handling requests.\n")
+	fmt.Printf("* Manage this application at Cloud Console:\n\t")
+	color.New(color.Underline, color.Bold).Printf("https://console.cloud.google.com/run?project=%s\n", project)
+	fmt.Printf("* Learn more about Cloud Run:\n\t")
 	color.New(color.Underline, color.Bold).Println("https://cloud.google.com/run/docs")
 	return nil
 }
