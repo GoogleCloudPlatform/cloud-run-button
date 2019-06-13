@@ -214,7 +214,7 @@ func run(c *cli.Context) error {
 	serviceName = tryFixServiceName(serviceName)
 
 	image := fmt.Sprintf("gcr.io/%s/%s", project, serviceName)
-	fmt.Println(infoPrefix + " Will run command:")
+	fmt.Println(infoPrefix + " FYI, running the following command:")
 	cmdColor.Printf("\tdocker build -t %s %s\n", parameter(image), parameter("."))
 
 	end = logProgress(fmt.Sprintf("Building container image %s", highlight(image)),
@@ -226,7 +226,7 @@ func run(c *cli.Context) error {
 		return err
 	}
 
-	fmt.Println(infoPrefix + " Will run command:")
+	fmt.Println(infoPrefix + " FYI, running the following command:")
 	cmdColor.Printf("\tdocker push %s\n", parameter(image))
 	end = logProgress("Pushing container image...",
 		"Pushed container image to Google Container Registry.",
@@ -240,7 +240,7 @@ func run(c *cli.Context) error {
 	serviceLabel := highlight(serviceName)
 	region := defaultRunRegion
 
-	fmt.Println(infoPrefix + " Will run command:")
+	fmt.Println(infoPrefix + " FYI, running the following command:")
 	cmdColor.Printf("\tgcloud beta run deploy %s", parameter(serviceName))
 	cmdColor.Println("\\")
 	cmdColor.Printf("\t  --project=%s", parameter(project))
