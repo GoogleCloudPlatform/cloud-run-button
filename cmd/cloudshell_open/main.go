@@ -39,7 +39,7 @@ const (
 
 var (
 	linkLabel      = color.New(color.Bold, color.Underline)
-	parameterLabel = color.New(color.FgHiCyan, color.Bold, color.Underline)
+	parameterLabel = color.New(color.FgHiYellow, color.Bold, color.Underline)
 	errorLabel     = color.New(color.FgRed, color.Bold)
 	warningLabel   = color.New(color.Bold, color.FgHiYellow)
 	successLabel   = color.New(color.Bold, color.FgGreen)
@@ -214,8 +214,11 @@ func run(c *cli.Context) error {
 	serviceName = tryFixServiceName(serviceName)
 
 	image := fmt.Sprintf("gcr.io/%s/%s", project, serviceName)
-	end = logProgress(fmt.Sprintf("Building container image %s...", highlight(image)),
-		fmt.Sprintf("Built container image %s.", highlight(image)),
+	fmt.Println(infoPrefix + " FYI, running the following command:")
+	cmdColor.Printf("\tdocker build -t %s %s\n", parameter(image), parameter("."))
+
+	end = logProgress(fmt.Sprintf("Building container image %s", highlight(image)),
+		fmt.Sprintf("Built container image %s", highlight(image)),
 		"Failed to build container image.")
 	err = build(appDir, image)
 	end(err == nil)
@@ -223,6 +226,8 @@ func run(c *cli.Context) error {
 		return err
 	}
 
+	fmt.Println(infoPrefix + " FYI, running the following command:")
+	cmdColor.Printf("\tdocker push %s\n", parameter(image))
 	end = logProgress("Pushing container image...",
 		"Pushed container image to Google Container Registry.",
 		"Failed to push container image to Google Container Registry.")
@@ -233,42 +238,38 @@ func run(c *cli.Context) error {
 	}
 
 	serviceLabel := highlight(serviceName)
+	region := defaultRunRegion
+
+	fmt.Println(infoPrefix + " FYI, running the following command:")
+	cmdColor.Printf("\tgcloud beta run deploy %s", parameter(serviceName))
+	cmdColor.Println("\\")
+	cmdColor.Printf("\t  --project=%s", parameter(project))
+	cmdColor.Println("\\")
+	cmdColor.Printf("\t  --region=%s", parameter(region))
+	cmdColor.Println("\\")
+	cmdColor.Printf("\t  --image=%s", parameter(image))
+	cmdColor.Println("\\")
+	cmdColor.Printf("\t  --memory=%s", parameter(defaultRunMemory))
+	cmdColor.Println("\\")
+	cmdColor.Printf("\t  --allow-unauthenticated\n")
+
 	end = logProgress(fmt.Sprintf("Deploying service %s to Cloud Run...", serviceLabel),
 		fmt.Sprintf("Successfully deployed service %s to Cloud Run.", serviceLabel),
 		"Failed deploying the application to Cloud Run.")
-	region := defaultRunRegion
 	url, err := deploy(project, serviceName, image, region, envs)
 	end(err == nil)
 	if err != nil {
 		return err
 	}
 
-	fmt.Printf("%s %s %s\n\n",
-		successPrefix,
-		color.New(color.Bold).Sprint("Your application is now live at URL:"),
-		color.New(color.Bold, color.FgGreen, color.Underline).Sprint(url))
-
-	fmt.Println("Make a change to this application:")
-	cmdColor.Printf("\tcd %s\n\n", parameter(appDir))
-
-	fmt.Println("Rebuild the container image and push to Container Registry:")
-	cmdColor.Printf("\tdocker build -t %s %s\n", parameter(image), parameter("."))
-	cmdColor.Printf("\tdocker push %s\n\n\n", parameter(image))
-
-	fmt.Println("Deploy the new version to Cloud Run:")
-	cmdColor.Printf("\tgcloud beta run deploy %s\n", parameter(serviceName))
-	cmdColor.Printf("\t --project=%s", parameter(project))
-	cmdColor.Printf(" \\\n")
-	cmdColor.Printf("\t --region=%s", parameter(region))
-	cmdColor.Printf(" \\\n")
-	cmdColor.Printf("\t --image=%s", parameter(image))
-	cmdColor.Printf(" \\\n")
-	cmdColor.Printf("\t --memory=%s", parameter(defaultRunMemory))
-	cmdColor.Printf(" \\\n")
-	cmdColor.Printf("\t --allow-unauthenticated\n\n")
-
-	fmt.Printf("Learn more about Cloud Run:\n\t")
+	fmt.Printf("* This application is billed only when it's handling requests.\n")
+	fmt.Printf("* Manage this application at Cloud Console:\n\t")
+	color.New(color.Underline, color.Bold).Printf("https://console.cloud.google.com/run?project=%s\n", project)
+	fmt.Printf("* Learn more about Cloud Run:\n\t")
 	color.New(color.Underline, color.Bold).Println("https://cloud.google.com/run/docs")
+	fmt.Printf(successPrefix+" %s %s\n",
+		color.New(color.Bold).Sprint("Your application is now live here:\n\t"),
+		color.New(color.Bold, color.FgGreen, color.Underline).Sprint(url))
 	return nil
 }
 
