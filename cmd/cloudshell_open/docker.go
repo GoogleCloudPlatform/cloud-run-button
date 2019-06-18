@@ -16,10 +16,12 @@ package main
 
 import (
 	"fmt"
+	"os"
 	"os/exec"
+	"path/filepath"
 )
 
-func build(dir, image string) error {
+func dockerBuild(dir, image string) error {
 	cmd := exec.Command("docker", "build", "--quiet", "--tag", image, dir)
 	b, err := cmd.CombinedOutput()
 	if err != nil {
@@ -28,11 +30,22 @@ func build(dir, image string) error {
 	return nil
 }
 
-func push(image string) error {
+func dockerPush(image string) error {
 	cmd := exec.Command("docker", "push", image)
 	b, err := cmd.CombinedOutput()
 	if err != nil {
 		return fmt.Errorf("docker push failed: %v, output:\n%s", err, string(b))
 	}
 	return nil
+}
+
+func dockerFileExists(dir string) (bool, error) {
+	if _, err := os.Stat(filepath.Join(dir, "Dockerfile")); err != nil {
+		if os.IsNotExist(err) {
+			return false, nil
+		}
+		return false, fmt.Errorf("failed to check for Dockerfile in the repo: %v", err)
+	}
+
+	return true, nil
 }
