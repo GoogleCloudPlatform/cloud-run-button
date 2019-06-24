@@ -22,10 +22,17 @@ import (
 	"sort"
 	"strings"
 
+	"github.com/AlecAivazis/survey/v2"
 	"github.com/fatih/color"
+)
 
-	"gopkg.in/AlecAivazis/survey.v1"
-	surveycore "gopkg.in/AlecAivazis/survey.v1/core"
+var (
+	surveyIconOpts = survey.WithIcons(func(icons *survey.IconSet) {
+		icons.Question = survey.Icon{Text: questionPrefix}
+		icons.Error = survey.Icon{Text: errorPrefix}
+		icons.SelectFocus = survey.Icon{Text: questionSelectFocusIcon}
+		icons.HelpInput = survey.Icon{Text: "Arrows to navigate"}
+	})
 )
 
 func listProjects() ([]string, error) {
@@ -59,17 +66,12 @@ func confirmProject(project string) (bool, error) {
 	// customize survey visuals ideally these shouldn't be global
 	// see https://github.com/AlecAivazis/survey/issues/192
 	// TODO(ahmetb): if the issue above is fixed, make the settings per-question
-	defer func(s string) {
-		surveycore.QuestionIcon = s
-	}(surveycore.QuestionIcon)
-	surveycore.QuestionIcon = questionPrefix
-
 	var ok bool
 	projectLabel := color.New(color.Bold, color.FgHiCyan).Sprint(project)
 	if err := survey.AskOne(&survey.Confirm{
 		Default: true,
 		Message: fmt.Sprintf("Would you like to use existing GCP project %v to deploy this app?", projectLabel),
-	}, &ok, nil); err != nil {
+	}, &ok, surveyIconOpts); err != nil {
 		return false, fmt.Errorf("could not prompt for confirmation using project %s: %+v", project, err)
 	}
 	return ok, nil
@@ -79,24 +81,14 @@ func promptMultipleProjects(projects []string) (string, error) {
 	// customize survey visuals ideally these shouldn't be global
 	// see https://github.com/AlecAivazis/survey/issues/192
 	// TODO(ahmetb): if the issue above is fixed, make the settings per-question
-	defer func(s string) {
-		surveycore.QuestionIcon = s
-	}(surveycore.QuestionIcon)
-	defer func(s string) {
-		surveycore.ErrorIcon = s
-	}(surveycore.ErrorIcon)
-	defer func(s string) {
-		surveycore.SelectFocusIcon = s
-	}(surveycore.SelectFocusIcon)
-	surveycore.QuestionIcon = questionPrefix
-	surveycore.ErrorIcon = errorPrefix
-	surveycore.SelectFocusIcon = questionSelectFocusIcon
-
 	var p string
 	if err := survey.AskOne(&survey.Select{
 		Message: "Choose a project to deploy this application:",
 		Options: projects,
-	}, &p, survey.Required); err != nil {
+	}, &p,
+		surveyIconOpts,
+		survey.WithValidator(survey.Required),
+	); err != nil {
 		return p, fmt.Errorf("could not choose a project: %+v", err)
 	}
 	return p, nil

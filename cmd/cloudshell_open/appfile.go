@@ -23,8 +23,7 @@ import (
 
 	"github.com/fatih/color"
 
-	"gopkg.in/AlecAivazis/survey.v1"
-	surveycore "gopkg.in/AlecAivazis/survey.v1/core"
+	"github.com/AlecAivazis/survey/v2"
 )
 
 type env struct {
@@ -99,15 +98,6 @@ func getAppFile(dir string) (appFile, error) {
 func promptEnv(list map[string]env) ([]string, error) {
 	// TODO(ahmetb): remove these defers and make customizations at the
 	// individual prompt-level once survey lib allows non-global settings.
-	defer func(s string) {
-		surveycore.QuestionIcon = s
-	}(surveycore.QuestionIcon)
-	surveycore.QuestionIcon = questionPrefix
-
-	defer func(s string) {
-		surveycore.ErrorIcon = s
-	}(surveycore.ErrorIcon)
-	surveycore.ErrorIcon = "✘"
 
 	var out []string
 	// TODO(ahmetb): we should ideally use an ordered map structure for Env
@@ -120,7 +110,10 @@ func promptEnv(list map[string]env) ([]string, error) {
 				color.CyanString(k),
 				color.HiBlackString(e.Description)),
 			Default: e.Value,
-		}, &resp, survey.Required); err != nil {
+		}, &resp,
+			survey.WithValidator(survey.Required),
+			surveyIconOpts,
+		); err != nil {
 			return nil, fmt.Errorf("failed to get a response for environment variable %s", k)
 		}
 		out = append(out, k+"="+resp)
