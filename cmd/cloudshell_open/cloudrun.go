@@ -30,6 +30,7 @@ func deploy(project, name, image, region string, envs []string) (string, error) 
 	cmd := exec.Command("gcloud", "beta", "run", "deploy", "-q",
 		name,
 		"--project", project,
+		"--platform", "managed",
 		"--image", image,
 		"--region", region,
 		"--memory", defaultRunMemory,
@@ -44,6 +45,7 @@ func deploy(project, name, image, region string, envs []string) (string, error) 
 func serviceURL(project, name, region string) (string, error) {
 	cmd := exec.Command("gcloud", "beta", "run", "services", "describe", name,
 		"--project", project,
+		"--platform", "managed",
 		"--region", region,
 		"--format", "value(status.domain)")
 

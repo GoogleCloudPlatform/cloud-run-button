@@ -245,6 +245,8 @@ func run(c *cli.Context) error {
 	cmdColor.Println("\\")
 	cmdColor.Printf("\t  --project=%s", parameter(project))
 	cmdColor.Println("\\")
+	cmdColor.Printf("\t  --project=%s", parameter("managed"))
+	cmdColor.Println("\\")
 	cmdColor.Printf("\t  --region=%s", parameter(region))
 	cmdColor.Println("\\")
 	cmdColor.Printf("\t  --image=%s", parameter(image))
