@@ -35,6 +35,15 @@ type env struct {
 type appFile struct {
 	Name string         `json:"name"`
 	Env  map[string]env `json:"env"`
+
+	// The following are unused variables that are still silently accepted
+	// for compatibility with Heroku app.json files.
+
+	IgnoredDescription string   `json:"description"`
+	IgnoredKeywords    []string `json:"keywords"`
+	IgnoredLogo        string   `json:"logo"`
+	IgnoredRepository  string   `json:"repository"`
+	IgnoredWebsite     string   `json:"website"`
 }
 
 const appJSON = `app.json`

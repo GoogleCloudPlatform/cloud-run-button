@@ -149,6 +149,20 @@ func Test_parseAppFile(t *testing.T) {
 	}
 }
 
+func Test_parseAppFile_parsesIgnoredKnownFields(t *testing.T) {
+	appFile := `{
+		"description": "String",
+		"repository": "URL",
+		"logo": "URL",
+		"website": "URL",
+		"keywords": ["String", "String"]
+	}`
+	_, err := parseAppFile(strings.NewReader(appFile))
+	if err != nil {
+		t.Fatalf("app.json with ignored but known fields failed: %v", err)
+	}
+}
+
 func TestGetAppFile(t *testing.T) {
 	dir, err := ioutil.TempDir(os.TempDir(), "app.json-test")
 	if err != nil {
