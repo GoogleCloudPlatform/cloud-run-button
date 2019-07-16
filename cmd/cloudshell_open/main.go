@@ -214,16 +214,30 @@ func run(c *cli.Context) error {
 	serviceName = tryFixServiceName(serviceName)
 
 	image := fmt.Sprintf("gcr.io/%s/%s", project, serviceName)
-	fmt.Println(infoPrefix + " FYI, running the following command:")
-	cmdColor.Printf("\tdocker build -t %s %s\n", parameter(image), parameter("."))
 
 	end = logProgress(fmt.Sprintf("Building container image %s", highlight(image)),
 		fmt.Sprintf("Built container image %s", highlight(image)),
 		"Failed to build container image.")
-	err = build(appDir, image)
-	end(err == nil)
+
+	exists, err := dockerFileExists(appDir)
 	if err != nil {
 		return err
+	}
+
+	if exists {
+		fmt.Println(infoPrefix + " Attempting to build this application with its Dockerfile...")
+		fmt.Println(infoPrefix + " FYI, running the following command:")
+		cmdColor.Printf("\tdocker build -t %s %s\n", parameter(image), parameter("."))
+		err = dockerBuild(appDir, image)
+	} else {
+		fmt.Println(infoPrefix + " Attempting to build this application with Cloud Native Buildpacks (buildpacks.io)...")
+		fmt.Println(infoPrefix + " FYI, running the following command:")
+		cmdColor.Printf("\tpack build %s --path %s --builder heroku/buildacks\n", parameter(image), parameter(appDir))
+		err = packBuild(appDir, image)
+	}
+	end(err == nil)
+	if err != nil {
+		return fmt.Errorf("this application doesn't have a Dockerfile; attempted to build it via heroku/buildpacks and failed: %s", err)
 	}
 
 	fmt.Println(infoPrefix + " FYI, running the following command:")
@@ -231,7 +245,7 @@ func run(c *cli.Context) error {
 	end = logProgress("Pushing container image...",
 		"Pushed container image to Google Container Registry.",
 		"Failed to push container image to Google Container Registry.")
-	err = push(image)
+	err = dockerPush(image)
 	end(err == nil)
 	if err != nil {
 		return fmt.Errorf("failed to push image to %s: %+v", image, err)
