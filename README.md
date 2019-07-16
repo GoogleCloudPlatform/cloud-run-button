@@ -19,7 +19,7 @@ Cloud](https://storage.googleapis.com/cloudrun/button.svg)](https://console.clou
     [![Run on Google Cloud](https://storage.googleapis.com/cloudrun/button.svg)](https://console.cloud.google.com/cloudshell/editor?shellonly=true&cloudshell_image=gcr.io/cloudrun/button&cloudshell_git_repo=YOUR_HTTP_GIT_URL)
     ```
 
-1. Replace `YOUR_HTTP_GIT_URL` with your HTTP git URL, like:
+1. Replace `YOUR_HTTP_GIT_URL` with your HTTP git URL, like:  
    `https://github.com/GoogleCloudPlatform/cloud-run-hello.git`
 
 1. If the repo contains a `Dockerfile` it will be built using the `docker build` command. Otherwise, the [CNCF Buildpacks](https://buildpacks.io/) will be used to build the repo.
