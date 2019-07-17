@@ -185,6 +185,12 @@ func run(c *cli.Context) error {
 		return err
 	}
 
+	locations, _ := listLocations()
+	region, err := promptLocation(locations)
+	if err != nil {
+		return err
+	}
+
 	if err := waitForBilling(project, func(p string) {
 		fmt.Print(errorPrefix+" "+
 			warningLabel.Sprint("GCP project you chose does not have an active billing account!")+
@@ -252,7 +258,6 @@ func run(c *cli.Context) error {
 	}
 
 	serviceLabel := highlight(serviceName)
-	region := defaultRunRegion
 
 	fmt.Println(infoPrefix + " FYI, running the following command:")
 	cmdColor.Printf("\tgcloud beta run deploy %s", parameter(serviceName))

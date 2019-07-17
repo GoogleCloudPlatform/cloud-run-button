@@ -22,7 +22,6 @@ import (
 )
 
 const (
-	defaultRunRegion = "us-central1"
 	defaultRunMemory = "512Mi"
 )
 
