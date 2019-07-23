@@ -17,6 +17,7 @@ package main
 import (
 	"bufio"
 	"bytes"
+	"context"
 	"errors"
 	"fmt"
 	"os"
@@ -96,6 +97,7 @@ func logProgress(msg, endMsg, errMsg string) func(bool) {
 }
 
 func run(c *cli.Context) error {
+	ctx := context.Background()
 	highlight := func(s string) string { return color.CyanString(s) }
 	parameter := func(s string) string { return parameterLabel.Sprint(s) }
 	cmdColor := color.New(color.FgHiBlue)
@@ -206,6 +208,11 @@ func run(c *cli.Context) error {
 		return err
 	}
 
+	region, err := promptDeploymentRegion(ctx, project)
+	if err != nil {
+		return err
+	}
+
 	repoName := filepath.Base(appDir)
 	serviceName := repoName
 	if appFile.Name != "" {
@@ -252,8 +259,6 @@ func run(c *cli.Context) error {
 	}
 
 	serviceLabel := highlight(serviceName)
-	region := defaultRunRegion
-
 	fmt.Println(infoPrefix + " FYI, running the following command:")
 	cmdColor.Printf("\tgcloud beta run deploy %s", parameter(serviceName))
 	cmdColor.Println("\\")
