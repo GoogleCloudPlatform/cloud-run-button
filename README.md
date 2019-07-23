@@ -24,6 +24,12 @@ Cloud](https://storage.googleapis.com/cloudrun/button.svg)](https://console.clou
 
 1. If the repo contains a `Dockerfile` it will be built using the `docker build` command. Otherwise, the [CNCF Buildpacks](https://buildpacks.io/) will be used to build the repo.
 
+### Customizing source repository parameters
+
+- To use a different git branch, add a `cloudshell_git_branch=BRANCH_NAME` query parameter.
+- To run the build in a subdirectory of the repo, add a `cloudshell_dir=SUBDIR` query parameter.
+
+
 ### Customizing deployment parameters
 
 If you include an `app.json` at the root of your repository, it allows you
