@@ -22,8 +22,7 @@ Cloud](https://storage.googleapis.com/cloudrun/button.svg)](https://console.clou
 1. Replace `YOUR_HTTP_GIT_URL` with your HTTP git URL, like:
    `https://github.com/jamesward/hello-netcat.git`
 
-1. Make sure the repository has a Dockerfile, so it can be built using the
-   `docker build` command.
+1. If the repo contains a `Dockerfile` it will be built using the `docker build` command. Otherwise, the [CNCF Buildpacks](https://buildpacks.io/) will be used to build the repo.
 
 ### Customizing deployment parameters
 
