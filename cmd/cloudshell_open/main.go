@@ -215,24 +215,26 @@ func run(c *cli.Context) error {
 
 	image := fmt.Sprintf("gcr.io/%s/%s", project, serviceName)
 
-	end = logProgress(fmt.Sprintf("Building container image %s", highlight(image)),
-		fmt.Sprintf("Built container image %s", highlight(image)),
-		"Failed to build container image.")
-
 	exists, err := dockerFileExists(appDir)
 	if err != nil {
 		return err
 	}
-
 	if exists {
 		fmt.Println(infoPrefix + " Attempting to build this application with its Dockerfile...")
 		fmt.Println(infoPrefix + " FYI, running the following command:")
 		cmdColor.Printf("\tdocker build -t %s %s\n", parameter(image), parameter("."))
-		err = dockerBuild(appDir, image)
 	} else {
 		fmt.Println(infoPrefix + " Attempting to build this application with Cloud Native Buildpacks (buildpacks.io)...")
 		fmt.Println(infoPrefix + " FYI, running the following command:")
 		cmdColor.Printf("\tpack build %s --path %s --builder heroku/buildacks\n", parameter(image), parameter(appDir))
+	}
+
+	end = logProgress(fmt.Sprintf("Building container image %s", highlight(image)),
+		fmt.Sprintf("Built container image %s", highlight(image)),
+		"Failed to build container image.")
+	if exists {
+		err = dockerBuild(appDir, image)
+	} else {
 		err = packBuild(appDir, image)
 	}
 	end(err == nil)
