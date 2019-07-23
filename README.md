@@ -25,7 +25,11 @@ Cloud](https://storage.googleapis.com/cloudrun/button.svg)](https://console.clou
 1. Make sure the repository has a Dockerfile, so it can be built using the
    `docker build` command.
 
-1. *Optional* To use a different git branch, add a `cloudshell_git_branch=BRANCH_NAME` query parameter
+### Customizing source repository parameters
+
+- To use a different git branch, add a `cloudshell_git_branch=BRANCH_NAME` query parameter.
+- To run the build in a subdirectory of the repo, add a `cloudshell_dir=SUBDIR` query parameter.
+
 
 ### Customizing deployment parameters
 
