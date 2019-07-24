@@ -6,21 +6,21 @@ click.
 
 [run]: https://cloud.google.com/run
 
-Try it out with a simple web server ([source](https://github.com/jamesward/hello-netcat)):
+Try it out with a "hello, world" Go application ([source](https://github.com/GoogleCloudPlatform/cloud-run-hello)):
 
 [![Run on Google
-Cloud](https://storage.googleapis.com/cloudrun/button.svg)](https://console.cloud.google.com/cloudshell/editor?shellonly=true&cloudshell_image=gcr.io/cloudrun/button&cloudshell_git_repo=https://github.com/jamesward/hello-netcat.git)
+Cloud](https://storage.googleapis.com/cloudrun/button.svg)](https://console.cloud.google.com/cloudshell/editor?shellonly=true&cloudshell_image=gcr.io/cloudrun/button&cloudshell_git_repo=https://github.com/GoogleCloudPlatform/cloud-run-hello.git)
 
-### Instructions
+### Add the Cloud Run Button to Your Repo's README
 
 1. Copy & paste this markdown:
 
-    ```md
+    ```text
     [![Run on Google Cloud](https://storage.googleapis.com/cloudrun/button.svg)](https://console.cloud.google.com/cloudshell/editor?shellonly=true&cloudshell_image=gcr.io/cloudrun/button&cloudshell_git_repo=YOUR_HTTP_GIT_URL)
     ```
 
-1. Replace `YOUR_HTTP_GIT_URL` with your HTTP git URL, like:
-   `https://github.com/jamesward/hello-netcat.git`
+1. Replace `YOUR_HTTP_GIT_URL` with your HTTP git URL, like:  
+   `https://github.com/GoogleCloudPlatform/cloud-run-hello.git`
 
 1. If the repo contains a `Dockerfile` it will be built using the `docker build` command. Otherwise, the [CNCF Buildpacks](https://buildpacks.io/) will be used to build the repo.
 
