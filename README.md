@@ -12,7 +12,7 @@ Try it out with a simple web server ([source](https://github.com/jamesward/hello
 Cloud](https://storage.googleapis.com/cloudrun/button.svg)](https://console.cloud.google.com/cloudshell/editor?shellonly=true&cloudshell_image=gcr.io/cloudrun/button&cloudshell_git_repo=https://github.com/jamesward/hello-netcat.git)
 
 ### Demo
-[![Cloud Run Button Demo](https://storage.googleapis.com/cloudrun/cloud-run-button.gif)]
+[![Cloud Run Button Demo](assets/cloud-run-button.png)](https://storage.googleapis.com/cloudrun/cloud-run-button.gif)
 
 ### Add the Cloud Run Button to Your Repo's README
 
