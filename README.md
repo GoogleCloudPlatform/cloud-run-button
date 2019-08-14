@@ -11,6 +11,9 @@ Try it out with a "hello, world" Go application ([source](https://github.com/Goo
 [![Run on Google
 Cloud](https://storage.googleapis.com/cloudrun/button.svg)](https://console.cloud.google.com/cloudshell/editor?shellonly=true&cloudshell_image=gcr.io/cloudrun/button&cloudshell_git_repo=https://github.com/GoogleCloudPlatform/cloud-run-hello.git)
 
+### Demo
+[![Cloud Run Button Demo](assets/cloud-run-button.png)](https://storage.googleapis.com/cloudrun/cloud-run-button.gif)
+
 ### Add the Cloud Run Button to Your Repo's README
 
 1. Copy & paste this markdown:
