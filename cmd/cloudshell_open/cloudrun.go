@@ -15,10 +15,15 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"os/exec"
+	"sort"
 	"strings"
 	"unicode"
+
+	"github.com/AlecAivazis/survey/v2"
+	runapi "google.golang.org/api/run/v1beta1"
 )
 
 const (
@@ -40,6 +45,46 @@ func deploy(project, name, image, region string, envs []string) (string, error) 
 		return "", fmt.Errorf("failed to deploy to Cloud Run: %+v. output:\n%s", err, string(b))
 	}
 	return serviceURL(project, name, region)
+}
+
+func projectRunLocations(ctx context.Context, project string) ([]string, error) {
+	runSvc, err := runapi.NewService(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("failed to initialize Run API client: %+v", err)
+	}
+
+	var locations []string
+	if err := runapi.NewProjectsLocationsService(runSvc).
+		List("projects/"+project).Pages(ctx, func(resp *runapi.ListLocationsResponse) error {
+		for _, v := range resp.Locations {
+			locations = append(locations, v.LocationId)
+		}
+		return nil
+	}); err != nil {
+		return nil, fmt.Errorf("request to query Cloud Run locations failed: %+v", err)
+	}
+	sort.Strings(locations)
+	return locations, nil
+}
+
+func promptDeploymentRegion(ctx context.Context, project string) (string, error) {
+	locations, err := projectRunLocations(ctx, project)
+	if err != nil {
+		return "", fmt.Errorf("cannot retrieve Cloud Run locations: %+v", err)
+	}
+
+	var choice string
+	if err := survey.AskOne(&survey.Select{
+		Message: "Choose a region to deploy this application:",
+		Options: locations,
+		Default: defaultRunRegion,
+	}, &choice,
+		surveyIconOpts,
+		survey.WithValidator(survey.Required),
+	); err != nil {
+		return choice, fmt.Errorf("could not choose a region: %+v", err)
+	}
+	return choice, nil
 }
 
 func serviceURL(project, name, region string) (string, error) {

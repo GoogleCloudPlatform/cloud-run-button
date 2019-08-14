@@ -63,9 +63,6 @@ func promptProject(projects []string) (string, error) {
 }
 
 func confirmProject(project string) (bool, error) {
-	// customize survey visuals ideally these shouldn't be global
-	// see https://github.com/AlecAivazis/survey/issues/192
-	// TODO(ahmetb): if the issue above is fixed, make the settings per-question
 	var ok bool
 	projectLabel := color.New(color.Bold, color.FgHiCyan).Sprint(project)
 	if err := survey.AskOne(&survey.Confirm{
@@ -78,9 +75,6 @@ func confirmProject(project string) (bool, error) {
 }
 
 func promptMultipleProjects(projects []string) (string, error) {
-	// customize survey visuals ideally these shouldn't be global
-	// see https://github.com/AlecAivazis/survey/issues/192
-	// TODO(ahmetb): if the issue above is fixed, make the settings per-question
 	var p string
 	if err := survey.AskOne(&survey.Select{
 		Message: "Choose a project to deploy this application:",
