@@ -23,7 +23,7 @@ import (
 	"unicode"
 
 	"github.com/AlecAivazis/survey/v2"
-	runapi "google.golang.org/api/run/v1beta1"
+	runapi "google.golang.org/api/run/v1alpha1"
 )
 
 const (
