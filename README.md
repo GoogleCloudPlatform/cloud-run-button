@@ -71,6 +71,6 @@ Reference:
 
 ### Notes
 
-- Disclaimer: This is not an official Google project.
+- Disclaimer: This is not an officially supported Google product.
 - See [LICENSE](./LICENSE) for the licensing information.
 - See [Contribution Guidelines](./CONTRIBUTING.md) on how to contribute.
