@@ -233,7 +233,7 @@ func run(c *cli.Context) error {
 	} else {
 		fmt.Println(infoPrefix + " Attempting to build this application with Cloud Native Buildpacks (buildpacks.io)...")
 		fmt.Println(infoPrefix + " FYI, running the following command:")
-		cmdColor.Printf("\tpack build %s --path %s --builder heroku/buildacks\n", parameter(image), parameter(appDir))
+		cmdColor.Printf("\tpack build %s --path %s --builder heroku/buildpacks\n", parameter(image), parameter(appDir))
 	}
 
 	end = logProgress(fmt.Sprintf("Building container image %s", highlight(image)),
