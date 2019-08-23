@@ -30,7 +30,7 @@ Cloud](https://storage.googleapis.com/cloudrun/button.svg)](https://console.clou
 ### Customizing source repository parameters
 
 - To use a different git branch, add a `cloudshell_git_branch=BRANCH_NAME` query parameter.
-- To run the build in a subdirectory of the repo, add a `cloudshell_dir=SUBDIR` query parameter.
+- To run the build in a subdirectory of the repo, add a `cloudshell_working_dir=SUBDIR` query parameter.
 
 
 ### Customizing deployment parameters
