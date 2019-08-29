@@ -1,6 +1,6 @@
 steps:
 - name: 'gcr.io/cloud-builders/docker'
-  args: ['build', '--tag', 'gcr.io/$PROJECT_ID/button-redirector:$SHORT_SHA', '.']
+  args: ['build', '--tag', 'gcr.io/$PROJECT_ID/button-redirector:$SHORT_SHA', 'cmd/redirector']
 - name: 'gcr.io/cloud-builders/docker'
   args: ['push', 'gcr.io/$PROJECT_ID/button-redirector:$SHORT_SHA']
 - name: 'gcr.io/cloud-builders/gcloud'
