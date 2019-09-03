@@ -66,7 +66,7 @@ Reference:
   - `description`:  _(optional)_ short explanation of what the environment
     variable does, keep this short to make sure it fits into a line.
   - `value`: _(optional)_ default value for the variable, should be a string.
-  - `required`, _(optional, default: `true`)_ indicaes if they user must provide
+  - `required`, _(optional, default: `true`)_ indicates if they user must provide
     a value for this variable.
 
 ### Notes
