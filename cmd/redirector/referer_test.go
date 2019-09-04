@@ -50,9 +50,9 @@ func Test_prepURL(t *testing.T) {
 		{
 			name: "passthrough flags",
 			args: args{
-				r:         mockRepo{},
+				r: mockRepo{},
 				overrides: url.Values{
-					"cloudshell_xxx":[]string{"yyy"},
+					"cloudshell_xxx": []string{"yyy"},
 				},
 			},
 			want: "https://console.cloud.google.com/cloudshell/editor?cloudshell_git_repo=GIT&cloudshell_image=gcr.io%2Fcloudrun%2Fbutton&cloudshell_xxx=yyy",
@@ -60,9 +60,9 @@ func Test_prepURL(t *testing.T) {
 		{
 			name: "passthrough flags as override",
 			args: args{
-				r:         mockRepo{},
+				r: mockRepo{},
 				overrides: url.Values{
-					"cloudshell_git_repo":[]string{"FOO"},
+					"cloudshell_git_repo": []string{"FOO"},
 				},
 			},
 			want: "https://console.cloud.google.com/cloudshell/editor?cloudshell_git_repo=FOO&cloudshell_image=gcr.io%2Fcloudrun%2Fbutton",
