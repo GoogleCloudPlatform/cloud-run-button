@@ -317,12 +317,16 @@ func checkCloudShellTrusted() (bool, error) {
 }
 
 func waitForBilling(projectID string, prompt func(string) error) error {
-	ok, err := checkBillingEnabled(projectID)
-	if err != nil {
-		return err
+	for {
+		ok, err := checkBillingEnabled(projectID)
+		if err != nil {
+			return err
+		}
+		if ok {
+			return nil
+		}
+		if err := prompt(projectID); err != nil {
+			return err
+		}
 	}
-	if ok {
-		return nil
-	}
-	return prompt(projectID)
 }
