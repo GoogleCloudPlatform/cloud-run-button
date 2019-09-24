@@ -15,11 +15,13 @@
 package main
 
 import (
+	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"io"
 	"os"
 	"path/filepath"
+	"crypto/rand"
 
 	"github.com/fatih/color"
 
@@ -30,6 +32,7 @@ type env struct {
 	Description string `json:"description"`
 	Value       string `json:"value"`
 	Required    *bool  `json:"required"`
+	Generator   string `json:"generator"`
 }
 
 type options struct {
@@ -109,6 +112,26 @@ func getAppFile(dir string) (appFile, error) {
 	return *af, nil
 }
 
+func rand64String() (string, error) {
+	b := make([]byte, 64)
+	if _, err := rand.Read(b); err != nil {
+		return "", err
+	}
+	return base64.StdEncoding.EncodeToString(b), nil
+}
+
+// takes the envs defined in app.json, and the existing envs and returns the new envs that need to be prompted for
+func prepEnv(list map[string]env, existing map[string]struct{}) map[string]env {
+	for k := range list {
+		_, isPresent := existing[k]
+		if isPresent {
+			delete(list, k)
+		}
+	}
+
+	return list
+}
+
 func promptEnv(list map[string]env) ([]string, error) {
 	// TODO(ahmetb): remove these defers and make customizations at the
 	// individual prompt-level once survey lib allows non-global settings.
@@ -118,19 +141,30 @@ func promptEnv(list map[string]env) ([]string, error) {
 	// field and prompt the questions as they appear in the app.json file as
 	// opposed to random order we do here.
 	for k, e := range list {
-		var resp string
-		if err := survey.AskOne(&survey.Input{
-			Message: fmt.Sprintf("Value of %s environment variable (%s)",
-				color.CyanString(k),
-				color.HiBlackString(e.Description)),
-			Default: e.Value,
-		}, &resp,
-			survey.WithValidator(survey.Required),
-			surveyIconOpts,
-		); err != nil {
-			return nil, fmt.Errorf("failed to get a response for environment variable %s", k)
+
+		if e.Generator == "secret" {
+			resp, err := rand64String()
+			if err != nil {
+				return nil, fmt.Errorf("failed to generate secret for %s - %v", k, err)
+			}
+			out = append(out, k+"="+resp)
+		} else {
+			var resp string
+
+			if err := survey.AskOne(&survey.Input{
+				Message: fmt.Sprintf("Value of %s environment variable (%s)",
+					color.CyanString(k),
+					color.HiBlackString(e.Description)),
+				Default: e.Value,
+			}, &resp,
+				survey.WithValidator(survey.Required),
+				surveyIconOpts,
+			); err != nil {
+				return nil, fmt.Errorf("failed to get a response for environment variable %s", k)
+			}
+			out = append(out, k+"="+resp)
 		}
-		out = append(out, k+"="+resp)
+
 	}
 	return out, nil
 }

@@ -164,10 +164,6 @@ func run(opts runOpts) error {
 	if err != nil {
 		return fmt.Errorf("error attempting to read the app.json from the cloned repository: %+v", err)
 	}
-	envs, err := promptEnv(appFile.Env)
-	if err != nil {
-		return err
-	}
 
 	var projects []string
 
@@ -242,6 +238,20 @@ func run(opts runOpts) error {
 
 	image := fmt.Sprintf("gcr.io/%s/%s", project, serviceName)
 
+	existingEnvVars := map[string]struct{}{}
+	_, err = describe(project, serviceName, region)
+	if err == nil {
+		// service exists
+		existingEnvVars, err = envVars(project, serviceName, region)
+	}
+
+	promptForEnv := prepEnv(appFile.Env, existingEnvVars)
+
+	envs, err := promptEnv(promptForEnv)
+	if err != nil {
+		return err
+	}
+
 	exists, err := dockerFileExists(appDir)
 	jibMaven := false
 	if err != nil {
@@ -312,10 +322,13 @@ func run(opts runOpts) error {
 	cmdColor.Printf("\t  --image=%s", parameter(image))
 	cmdColor.Println("\\")
 	cmdColor.Printf("\t  --memory=%s", parameter(defaultRunMemory))
+
 	for _, optionFlag := range optionsFlags {
 		cmdColor.Println("\\")
 		cmdColor.Printf("\t  %s\n", optionFlag)
 	}
+
+	// todo(jamesward) display env vars flag
 
 	end = logProgress(fmt.Sprintf("Deploying service %s to Cloud Run...", serviceLabel),
 		fmt.Sprintf("Successfully deployed service %s to Cloud Run.", serviceLabel),

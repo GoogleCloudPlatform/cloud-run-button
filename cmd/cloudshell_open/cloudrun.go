@@ -15,7 +15,9 @@
 package main
 
 import (
+	"bytes"
 	"context"
+	"encoding/json"
 	"fmt"
 	"os/exec"
 	"regexp"
@@ -32,6 +34,40 @@ const (
 	defaultRunMemory = "512Mi"
 )
 
+type service struct {
+	Spec serviceSpec `json:"spec"`
+	Status serviceStatus `json:"status"`
+}
+
+type serviceSpec struct {
+	Template serviceTemplate `json:"template"`
+}
+
+type serviceTemplate struct {
+	Spec templateSpec `json:"spec"`
+}
+
+type templateSpec struct {
+	Containers []container `json:"containers"`
+}
+
+type container struct {
+	EnvVars []envVar `json:"env"`
+}
+
+type envVar struct {
+	Name string `json:"name"`
+	Value string `json:"value"`
+}
+
+type serviceStatus struct {
+	Address address `json:"address"`
+}
+
+type address struct {
+	Url string `json:"url"`
+}
+
 func optionsToFlags(options options) []string {
 	authSetting := "--allow-unauthenticated"
 	if options.AllowUnauthenticated != nil && *options.AllowUnauthenticated == false {
@@ -44,7 +80,7 @@ func optionsToFlags(options options) []string {
 func deploy(project, name, image, region string, envs []string, options options) (string, error) {
 	optionsFlags := optionsToFlags(options)
 
-	params := []string {
+	params := []string{
 		"beta", "run", "deploy", "-q",
 		name,
 		"--project", project,
@@ -52,10 +88,11 @@ func deploy(project, name, image, region string, envs []string, options options)
 		"--image", image,
 		"--region", region,
 		"--memory", defaultRunMemory,
-		"--set-env-vars", strings.Join(envs, ","),
+		"--update-env-vars", strings.Join(envs, ","),
 	}
 
 	cmd := exec.Command("gcloud", append(params, optionsFlags...)...)
+
 	if b, err := cmd.CombinedOutput(); err != nil {
 		return "", fmt.Errorf("failed to deploy to Cloud Run: %+v. output:\n%s", err, string(b))
 	}
@@ -102,18 +139,57 @@ func promptDeploymentRegion(ctx context.Context, project string) (string, error)
 	return choice, nil
 }
 
-func serviceURL(project, name, region string) (string, error) {
+
+func describe(project, name, region string) (service, error) {
+	var service service
+	var o bytes.Buffer
+	var e bytes.Buffer
+
 	cmd := exec.Command("gcloud", "run", "services", "describe", name,
 		"--project", project,
 		"--platform", "managed",
 		"--region", region,
-		"--format", "value(status.address.url)")
+		"--format=json")
 
-	b, err := cmd.CombinedOutput()
-	if err != nil {
-		return "", fmt.Errorf("deployment to Cloud Run failed: %+v. output:\n%s", err, string(b))
+	cmd.Stdout = &o
+	cmd.Stderr = &e
+	if err := cmd.Run(); err != nil {
+		return service, fmt.Errorf("error describing service: %+v. output=\n%s", err, e.String())
 	}
-	return strings.TrimSpace(string(b)), nil
+
+	if err := json.NewDecoder(&o).Decode(&service); err != nil {
+		return service, fmt.Errorf("error decoding gcloud --format=json output: %+v", err)
+	}
+
+	return service, nil
+}
+
+func serviceURL(project, name, region string) (string, error) {
+	service, err := describe(project, name, region)
+
+	if err != nil {
+		return "", err
+	}
+
+	return service.Status.Address.Url, nil
+}
+
+func envVars(project, name, region string) (map[string]struct{}, error) {
+	service, err := describe(project, name, region)
+
+	if err != nil {
+		return map[string]struct{}{}, err
+	}
+
+	existing := map[string]struct{}{}
+
+	for _, container := range service.Spec.Template.Spec.Containers {
+		for _, envVar := range container.EnvVars {
+			existing[envVar.Name] = struct{}{}
+		}
+	}
+
+	return existing, nil
 }
 
 // tryFixServiceName attempts replace the service name with a better one to

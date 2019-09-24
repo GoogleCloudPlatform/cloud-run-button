@@ -14,7 +14,11 @@
 
 package main
 
-import "testing"
+import (
+	"fmt"
+	"reflect"
+	"testing"
+)
 
 func Test_tryFixServiceName(t *testing.T) {
 	tests := []struct {
@@ -46,6 +50,55 @@ func Test_tryFixServiceName(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			if got := tryFixServiceName(tt.in); got != tt.want {
 				t.Errorf("tryFixServiceName(%s) = %v, want %v", tt.in, got, tt.want)
+			}
+		})
+	}
+}
+
+// this integration test depends on gcloud being auth'd as someone that has access to the crb-test project
+// todo(jamesward) only run the integration test if the environment can do so
+func Test_describe(t *testing.T) {
+	tests := []struct {
+		project string
+		region string
+		service string
+		wantErr bool
+	}{
+		{"crb-test", "us-central1", "asdf1234zxcv5678", true},
+		{"crb-test", "us-central1", "cloud-run-hello", false},
+	}
+	for _, tt := range tests {
+		t.Run(tt.service, func(t *testing.T) {
+			_, err := describe(tt.project, tt.service, tt.region)
+
+			tparams := fmt.Sprintf("describe(%s, %s, %s)", tt.project, tt.region, tt.service)
+
+			if err == nil && tt.wantErr {
+				t.Error(tparams + " was expected to error but did not")
+			}
+
+			if err != nil && !tt.wantErr {
+				t.Error(tparams + " produced an error: %s", err)
+			}
+		})
+	}
+}
+
+// this integration test depends on gcloud being auth'd as someone that has access to the crb-test project
+// todo(jamesward) only run the integration test if the environment can do so
+func Test_envVars(t *testing.T) {
+	tests := []struct {
+		project string
+		region string
+		service string
+		want map[string]struct{}
+	}{
+		{"crb-test", "us-central1", "cloud-run-hello", map[string]struct{}{"FOO": {}, "BAR": {}}},
+	}
+	for _, tt := range tests {
+		t.Run(tt.service, func(t *testing.T) {
+			if got, err := envVars(tt.project, tt.service, tt.region); !reflect.DeepEqual(got, tt.want) || err != nil {
+				t.Errorf("envVars(%s, %s, %s) = %v, want %v", tt.project, tt.region, tt.service, got, tt.want)
 			}
 		})
 	}
