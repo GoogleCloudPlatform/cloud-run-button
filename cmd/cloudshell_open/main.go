@@ -343,6 +343,15 @@ func run(opts runOpts) error {
 		return err
 	}
 
+	if appFile.Scripts.Postdeploy != "" {
+		fmt.Println(infoPrefix + "Running postdeploy script:")
+		cmdColor.Printf("\t%s\n", appFile.Scripts.Postdeploy)
+		err := runScript(appDir, "postdeploy", project, serviceName, region, appFile.Scripts.Postdeploy)
+		if err != nil {
+			return err
+		}
+	}
+
 	fmt.Printf("* This application is billed only when it's handling requests.\n")
 	fmt.Printf("* Manage this application at Cloud Console:\n\t")
 	color.New(color.Underline, color.Bold).Printf("https://console.cloud.google.com/run?project=%s\n", project)

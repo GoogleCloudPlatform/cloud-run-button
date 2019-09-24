@@ -142,6 +142,10 @@ func Test_parseAppFile(t *testing.T) {
 						Required: &tru,
 					},
 				}}, false},
+		{"postdeploy script", `{
+			"scripts": {
+				"postdeploy": "foo"
+			}}`, &appFile{Scripts: scripts{Postdeploy: "foo"}}, false},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

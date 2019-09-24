@@ -39,14 +39,18 @@ type options struct {
 	AllowUnauthenticated *bool `json:"allow-unauthenticated"`
 }
 
+type scripts struct {
+	Postdeploy string `json:"postdeploy"`
+}
+
 type appFile struct {
 	Name        string         `json:"name"`
 	Env         map[string]env `json:"env"`
+	Scripts 	scripts        `json:"scripts"`
 	Options     options        `json:"options"`
 
 	// The following are unused variables that are still silently accepted
 	// for compatibility with Heroku app.json files.
-
 	IgnoredDescription string   `json:"description"`
 	IgnoredKeywords    []string `json:"keywords"`
 	IgnoredLogo        string   `json:"logo"`
