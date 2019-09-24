@@ -33,8 +33,9 @@ type env struct {
 }
 
 type appFile struct {
-	Name string         `json:"name"`
-	Env  map[string]env `json:"env"`
+	Name        string         `json:"name"`
+	Env         map[string]env `json:"env"`
+	RequireAuth *bool          `json:"require-auth"`
 
 	// The following are unused variables that are still silently accepted
 	// for compatibility with Heroku app.json files.
@@ -76,6 +77,11 @@ func parseAppFile(r io.Reader) (*appFile, error) {
 			env.Required = &v
 		}
 		v.Env[k] = env
+	}
+
+	// make "require-auth" false by default
+	if v.RequireAuth == nil {
+		v.RequireAuth = new(bool)
 	}
 
 	return &v, nil
