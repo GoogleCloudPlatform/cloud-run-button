@@ -223,6 +223,7 @@ func run(c *cli.Context) error {
 	image := fmt.Sprintf("gcr.io/%s/%s", project, serviceName)
 
 	exists, err := dockerFileExists(appDir)
+	jibMaven := false
 	if err != nil {
 		return err
 	}
@@ -231,33 +232,49 @@ func run(c *cli.Context) error {
 		fmt.Println(infoPrefix + " FYI, running the following command:")
 		cmdColor.Printf("\tdocker build -t %s %s\n", parameter(image), parameter("."))
 	} else {
-		fmt.Println(infoPrefix + " Attempting to build this application with Cloud Native Buildpacks (buildpacks.io)...")
-		fmt.Println(infoPrefix + " FYI, running the following command:")
-		cmdColor.Printf("\tpack build %s --path %s --builder heroku/buildpacks\n", parameter(image), parameter(appDir))
+		jibMaven, err = jibMavenConfigured(appDir)
+		if err != nil {
+			return err
+		}
+		if jibMaven {
+			fmt.Println(infoPrefix + " Attempting to build this application with Jib Maven plugin...")
+			fmt.Println(infoPrefix + " FYI, running the following command:")
+			cmdColor.Printf("\tmvn package jib:build -Dimage=%s\n", parameter(image))
+		} else {
+			fmt.Println(infoPrefix + " Attempting to build this application with Cloud Native Buildpacks (buildpacks.io)...")
+			fmt.Println(infoPrefix + " FYI, running the following command:")
+			cmdColor.Printf("\tpack build %s --path %s --builder heroku/buildpacks\n", parameter(image), parameter(appDir))
+		}
 	}
 
 	end = logProgress(fmt.Sprintf("Building container image %s", highlight(image)),
 		fmt.Sprintf("Built container image %s", highlight(image)),
 		"Failed to build container image.")
+	pushImage := true
 	if exists {
 		err = dockerBuild(appDir, image)
+	} else if jibMaven {
+		pushImage = false
+		err = jibMavenBuild(appDir, image)
 	} else {
 		err = packBuild(appDir, image)
 	}
 	end(err == nil)
 	if err != nil {
-		return fmt.Errorf("this application doesn't have a Dockerfile; attempted to build it via heroku/buildpacks and failed: %s", err)
+		return fmt.Errorf("attempted to build and failed: %s", err)
 	}
 
-	fmt.Println(infoPrefix + " FYI, running the following command:")
-	cmdColor.Printf("\tdocker push %s\n", parameter(image))
-	end = logProgress("Pushing container image...",
-		"Pushed container image to Google Container Registry.",
-		"Failed to push container image to Google Container Registry.")
-	err = dockerPush(image)
-	end(err == nil)
-	if err != nil {
-		return fmt.Errorf("failed to push image to %s: %+v", image, err)
+	if pushImage {
+		fmt.Println(infoPrefix + " FYI, running the following command:")
+		cmdColor.Printf("\tdocker push %s\n", parameter(image))
+		end = logProgress("Pushing container image...",
+			"Pushed container image to Google Container Registry.",
+			"Failed to push container image to Google Container Registry.")
+		err = dockerPush(image)
+		end(err == nil)
+		if err != nil {
+			return fmt.Errorf("failed to push image to %s: %+v", image, err)
+		}
 	}
 
 	serviceLabel := highlight(serviceName)
