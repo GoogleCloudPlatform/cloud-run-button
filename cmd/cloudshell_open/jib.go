@@ -22,11 +22,9 @@ import (
 )
 
 func jibMavenBuild(dir string, image string) error {
-	cmd := exec.Command("mvn", "--file="+filepath.Join(dir, "pom.xml"),
-		"--fail-fast", "--batch-mode", "--no-transfer-progress", "-Dmaven.test.skip=true",
+	cmd := createMavenCommand(dir, "--batch-mode", "-Dmaven.test.skip=true",
 		"package", "jib:build", "-Dimage="+image, "-Djib.to.auth.credHelper=gcloud")
-	b, err := cmd.CombinedOutput()
-	if err != nil {
+	if b, err := cmd.CombinedOutput(); err != nil {
 		return fmt.Errorf("Jib Maven build failed: %v, output:\n%s", err, string(b))
 	}
 	return nil
@@ -40,12 +38,27 @@ func jibMavenConfigured(dir string) (bool, error) {
 		return false, fmt.Errorf("failed to check for pom.xml in the repo: %v", err)
 	}
 
-	cmd := exec.Command("mvn", "--file="+filepath.Join(dir, "pom.xml"),
-		"--fail-fast", "--batch-mode", "--no-transfer-progress",
+	cmd := createMavenCommand(dir, "--batch-mode",
 		"jib:_skaffold-fail-if-jib-out-of-date", "-Djib.requiredVersion=1.4.0")
 	if _, err := cmd.CombinedOutput(); err != nil {
 		return false, nil
 	}
 
 	return true, nil
+}
+
+func createMavenCommand(dir string, args ...string) exec.Cmd {
+	executable := "mvn"
+
+	if stat, err := os.Stat(filepath.Join(dir, "mvnw")); err == nil {
+		if (stat.Mode() & 0111) != 0 {
+			if wrapper, err := filepath.Abs(filepath.Join(dir, "mvnw")); err == nil {
+				executable = wrapper
+			}
+		}
+	}
+
+	cmd := exec.Command(executable, args...)
+	cmd.Dir = dir
+	return *cmd
 }
