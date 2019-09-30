@@ -57,7 +57,7 @@ func jibMavenConfigured(dir string) (bool, error) {
 	return false, nil
 }
 
-func createMavenCommand(dir string, args ...string) exec.Cmd {
+func createMavenCommand(dir string, args ...string) *exec.Cmd {
 	executable := "mvn"
 
 	if stat, err := os.Stat(filepath.Join(dir, "mvnw")); err == nil {
@@ -70,7 +70,7 @@ func createMavenCommand(dir string, args ...string) exec.Cmd {
 
 	cmd := exec.Command(executable, args...)
 	cmd.Dir = dir
-	return *cmd
+	return cmd
 }
 
 func fileHasString(filePath string, pattern string) (bool, error) {
