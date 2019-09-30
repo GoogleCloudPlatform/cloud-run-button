@@ -33,20 +33,15 @@ func jibMavenBuild(dir string, image string) error {
 }
 
 func jibMavenConfigured(dir string) (bool, error) {
-	if _, err := os.Stat(filepath.Join(dir, "pom.xml")); err != nil {
+	content, err := ioutil.ReadFile(filepath.Join(dir, "pom.xml"))
+	if err != nil {
 		if os.IsNotExist(err) {
 			return false, nil
 		}
 		return false, fmt.Errorf("failed to check for pom.xml in the repo: %v", err)
 	}
 
-	hasJib, err := fileHasString(
-		filepath.Join(dir, "pom.xml"), "<artifactId>jib-maven-plugin</artifactId>")
-	if err != nil {
-		return false, fmt.Errorf("failed to read pom.xml in the repo: %v", err)
-	}
-
-	if hasJib {
+	if strings.Contains(string(content), "<artifactId>jib-maven-plugin</artifactId>") {
 		cmd := createMavenCommand(dir, "--batch-mode",
 			"jib:_skaffold-fail-if-jib-out-of-date", "-Djib.requiredVersion=1.4.0")
 		if _, err := cmd.CombinedOutput(); err == nil {
@@ -71,12 +66,4 @@ func createMavenCommand(dir string, args ...string) *exec.Cmd {
 	cmd := exec.Command(executable, args...)
 	cmd.Dir = dir
 	return cmd
-}
-
-func fileHasString(filePath string, pattern string) (bool, error) {
-	read, err := ioutil.ReadFile(filePath)
-	if err != nil {
-		return false, err
-	}
-	return strings.Contains(string(read), pattern), nil
 }
