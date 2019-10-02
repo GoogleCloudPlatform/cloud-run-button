@@ -28,7 +28,7 @@ import (
 
 const (
 	defaultRunRegion = "us-central1"
-	defaultRunMemory = "512Mi"
+	defaultRunMemory = "256Mi"
 )
 
 func deploy(project, name, image, region string, envs []string) (string, error) {
