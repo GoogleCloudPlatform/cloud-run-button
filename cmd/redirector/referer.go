@@ -34,6 +34,7 @@ func prepURL(r repoRef, overrides url.Values) string {
 	}
 	q := make(url.Values)
 	q.Set("cloudshell_image", "gcr.io/cloudrun/button")
+	q.Set("shellonly", "true")
 	q.Set("cloudshell_git_repo", r.GitURL())
 	if v := r.Ref(); v != "" {
 		q.Set("cloudshell_git_branch", v)
