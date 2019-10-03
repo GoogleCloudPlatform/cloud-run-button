@@ -33,6 +33,10 @@ func prepURL(r repoRef, overrides url.Values) string {
 		Path:   "cloudshell/editor",
 	}
 	q := make(url.Values)
+	// not an officially documented param:
+	// https://cloud.google.com/shell/docs/open-in-cloud-shell
+	q.Set("shellonly", "true")
+
 	q.Set("cloudshell_image", "gcr.io/cloudrun/button")
 	q.Set("cloudshell_git_repo", r.GitURL())
 	if v := r.Ref(); v != "" {
