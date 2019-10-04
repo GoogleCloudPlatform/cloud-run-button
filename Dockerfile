@@ -1,9 +1,5 @@
 FROM golang:1.12-alpine AS build
 RUN apk add --no-cache git
-WORKDIR /tmp
-RUN wget https://github.com/buildpack/pack/releases/download/v0.3.0/pack-v0.3.0-linux.tgz
-RUN tar -xzf pack-v0.3.0-linux.tgz
-RUN wget https://raw.githubusercontent.com/buildpack/pack/v0.3.0/LICENSE
 WORKDIR /src
 COPY go.mod go.sum ./
 RUN go mod download
@@ -12,7 +8,5 @@ RUN CGO_ENABLED=0 GOOS=linux go build -a -ldflags '-extldflags "-static"' \
         -o /bin/a.out ./cmd/cloudshell_open
 
 FROM gcr.io/cloudshell-images/cloudshell:latest
+RUN rm /google/devshell/bashrc.google.d/cloudshell_open.sh
 COPY --from=build /bin/a.out /bin/cloudshell_open
-COPY --from=build /tmp/pack /tmp/LICENSE /opt/pack/
-RUN rm /google/devshell/bashrc.google.d/cloudshell_open.sh && \
-        ln -s /opt/pack/pack /usr/local/bin/pack
