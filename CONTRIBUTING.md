@@ -18,7 +18,7 @@
 
 1. Run Cloud Run Button via Docker:
     ```
-    docker run -it -v /var/run/docker.sock:/var/run/docker.sock -v $KEY_FILE:/root/user.json --entrypoint=/bin/sh cloud-run-button -c "gcloud auth activate-service-account --key-file=/root/user.json --quiet && gcloud auth configure-docker --quiet && /bin/cloudshell_open --repo_url=https://github.com/GoogleCloudPlatform/cloud-run-hello.git"
+    docker run -it -v /var/run/docker.sock:/var/run/docker.sock -v $KEY_FILE:/root/user.json -e GOOGLE_APPLICATION_CREDENTIALS=/root/user.json --entrypoint=/bin/sh cloud-run-button -c "gcloud auth activate-service-account --key-file=/root/user.json --quiet && gcloud auth configure-docker --quiet && /bin/cloudshell_open --repo_url=https://github.com/GoogleCloudPlatform/cloud-run-hello.git"
     ```
 
 ## Contributor License Agreement
