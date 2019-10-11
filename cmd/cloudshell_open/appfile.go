@@ -40,7 +40,7 @@ type options struct {
 }
 
 type scripts struct {
-	Postdeploy string `json:"postdeploy"`
+	PostDeploy string `json:"postdeploy"`
 }
 
 type appFile struct {
