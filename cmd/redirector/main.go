@@ -20,8 +20,11 @@ func main() {
 	}
 	listenAddr := ":" + port
 
+	// TODO(ahmetb): extract server logic to NewServer() to unit test it
 	mux := http.NewServeMux()
 	mux.HandleFunc("/", withLogging(redirect))
+	mux.HandleFunc("/button.svg", staticRedirect("https://storage.googleapis.com/cloudrun/button.svg", http.StatusMovedPermanently))
+	mux.HandleFunc("/button.png", staticRedirect("https://storage.googleapis.com/cloudrun/button.png", http.StatusMovedPermanently))
 
 	err := http.ListenAndServe(listenAddr, mux)
 	if err == http.ErrServerClosed {
@@ -37,6 +40,13 @@ func withLogging(next http.HandlerFunc) http.HandlerFunc {
 		ww := &respRecorder{w: w}
 		next(ww, req)
 		log.Printf("response: status=%d location=%s", ww.status, w.Header().Get("location"))
+	}
+}
+
+func staticRedirect(url string, code int) http.HandlerFunc {
+	return func(w http.ResponseWriter, req *http.Request) {
+		w.Header().Set("location", url)
+		w.WriteHeader(code)
 	}
 }
 
