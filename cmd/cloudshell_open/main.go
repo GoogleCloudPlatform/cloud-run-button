@@ -173,7 +173,9 @@ func run(c *cli.Context) error {
 				"\n  1. Visit "+linkLabel.Sprint(projectCreateURL),
 				"\n  2. Create a new GCP project with a billing account",
 				"\n  3. Once you're done, press "+parameterLabel.Sprint("Enter")+" to continue: ")
-			bufio.NewReader(os.Stdin).ReadBytes('\n')
+			if _, err := bufio.NewReader(os.Stdin).ReadBytes('\n'); err != nil {
+				return err
+			}
 		}
 	}
 
@@ -187,13 +189,16 @@ func run(c *cli.Context) error {
 		return err
 	}
 
-	if err := waitForBilling(project, func(p string) {
+	if err := waitForBilling(project, func(p string) error {
 		fmt.Print(errorPrefix+" "+
 			warningLabel.Sprint("GCP project you chose does not have an active billing account!")+
 			"\n  1. Visit "+linkLabel.Sprint(projectCreateURL),
 			"\n  2. Associate a billing account for project "+parameterLabel.Sprint(p),
 			"\n  3. Once you're done, press "+parameterLabel.Sprint("Enter")+" to continue: ")
-		bufio.NewReader(os.Stdin).ReadBytes('\n')
+		if _, err := bufio.NewReader(os.Stdin).ReadBytes('\n'); err != nil {
+			return err
+		}
+		return nil
 	}); err != nil {
 		return err
 	}
@@ -311,7 +316,7 @@ func checkCloudShellTrusted() (bool, error) {
 	return false, fmt.Errorf("error determining if cloud shell is trusted: %+v. output=\n%s", err, string(b))
 }
 
-func waitForBilling(projectID string, prompt func(string)) error {
+func waitForBilling(projectID string, prompt func(string) error) error {
 	for {
 		ok, err := checkBillingEnabled(projectID)
 		if err != nil {
@@ -320,6 +325,8 @@ func waitForBilling(projectID string, prompt func(string)) error {
 		if ok {
 			return nil
 		}
-		prompt(projectID)
+		if err := prompt(projectID); err != nil {
+			return err
+		}
 	}
 }
