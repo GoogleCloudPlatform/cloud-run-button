@@ -34,6 +34,7 @@ const (
 	flRepoURL   = "repo_url"
 	flGitBranch = "git_branch"
 	flSubDir    = "dir"
+	flPage      = "page"
 
 	projectCreateURL = "https://console.cloud.google.com/cloud-resource-manager"
 )
@@ -72,6 +73,10 @@ func main() {
 		cli.StringFlag{
 			Name:  flSubDir,
 			Usage: "(optional) sub-directory to deploy in the repo",
+		},
+		cli.StringFlag{
+			Name:  flPage,
+			Usage: "(optional) unused but passed by Cloud Shell",
 		},
 	}
 	app.Action = run
