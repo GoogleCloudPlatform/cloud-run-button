@@ -275,7 +275,7 @@ func run(opts runOpts) error {
 
 	serviceLabel := highlight(serviceName)
 	fmt.Println(infoPrefix + " FYI, running the following command:")
-	cmdColor.Printf("\tgcloud beta run deploy %s", parameter(serviceName))
+	cmdColor.Printf("\tgcloud run deploy %s", parameter(serviceName))
 	cmdColor.Println("\\")
 	cmdColor.Printf("\t  --project=%s", parameter(project))
 	cmdColor.Println("\\")
