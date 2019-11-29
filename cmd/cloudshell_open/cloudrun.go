@@ -32,7 +32,7 @@ const (
 )
 
 func deploy(project, name, image, region string, envs []string) (string, error) {
-	cmd := exec.Command("gcloud", "beta", "run", "deploy", "-q",
+	cmd := exec.Command("gcloud", "run", "deploy", "-q",
 		name,
 		"--project", project,
 		"--platform", "managed",
@@ -88,11 +88,11 @@ func promptDeploymentRegion(ctx context.Context, project string) (string, error)
 }
 
 func serviceURL(project, name, region string) (string, error) {
-	cmd := exec.Command("gcloud", "beta", "run", "services", "describe", name,
+	cmd := exec.Command("gcloud", "run", "services", "describe", name,
 		"--project", project,
 		"--platform", "managed",
 		"--region", region,
-		"--format", "value(status.domain)")
+		"--format", "value(status.address.url)")
 
 	b, err := cmd.CombinedOutput()
 	if err != nil {

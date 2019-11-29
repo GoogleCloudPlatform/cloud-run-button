@@ -5,7 +5,6 @@ steps:
   args: ['push', 'gcr.io/$PROJECT_ID/button-redirector:$SHORT_SHA']
 - name: 'gcr.io/cloud-builders/gcloud'
   args:
-  - beta
   - run
   - deploy
   - cloud-run-button-deploy
