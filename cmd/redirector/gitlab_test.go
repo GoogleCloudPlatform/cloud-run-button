@@ -31,8 +31,8 @@ func TestExtractGitLabURL(t *testing.T) {
 			},
 		},
 		{
-			name: "unsupported repo subpath",
-			in:   "https://gitlab.com/gitlab-org/gitlab-runner/commits/master",
+			name:    "unsupported repo subpath",
+			in:      "https://gitlab.com/gitlab-org/gitlab-runner/commits/master",
 			wantErr: true,
 		},
 		{

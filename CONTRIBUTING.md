@@ -1,6 +1,25 @@
 # How to Contribute
 
-## Test Cloud Run Button's Underlying Command Locally
+## Test Cloud Run Button's Underlying Command Locally with Local Go
+
+1. Download Go 1.12.x
+1. Run the tests:
+    ```
+    go test ./cmd/cloudshell_open
+    ```
+1. Build the command:
+    ```
+    go build -o /tmp/cloudshell_open ./cmd/cloudshell_open
+    ```
+1. To test the command you'll need a GCP service account credentials file, then run:
+    ```
+    gcloud components update
+    export GOOGLE_APPLICATION_CREDENTIALS=PATH_TO_YOUR_SERVICE_ACCOUNT_KEY_FILE
+    gcloud auth activate-service-account --key-file=$GOOGLE_APPLICATION_CREDENTIALS
+    (cd /tmp; ./cloudshell_open --repo_url=https://github.com/GoogleCloudPlatform/cloud-run-hello.git; rm -rf cloud-run-hello)
+    ```
+
+## Test Cloud Run Button's Underlying Command Locally in a Container
 
 1. [Create a Service Account in a test account](https://console.cloud.google.com/iam-admin/serviceaccounts)
 1. Download the key json file for the new service account
@@ -18,7 +37,14 @@
 
 1. Run Cloud Run Button via Docker:
     ```
-    docker run -it -v /var/run/docker.sock:/var/run/docker.sock -v $KEY_FILE:/root/user.json --entrypoint=/bin/sh cloud-run-button -c "gcloud auth activate-service-account --key-file=/root/user.json --quiet && gcloud auth configure-docker --quiet && /bin/cloudshell_open --repo_url=https://github.com/GoogleCloudPlatform/cloud-run-hello.git"
+    docker run -it -v /var/run/docker.sock:/var/run/docker.sock \
+      -v $KEY_FILE:/root/user.json \
+      -e GOOGLE_APPLICATION_CREDENTIALS=/root/user.json \
+      --entrypoint=/bin/sh cloud-run-button -c \
+      "gcloud auth activate-service-account --key-file=/root/user.json \
+      --quiet && gcloud auth configure-docker --quiet && \
+      /bin/cloudshell_open \
+      --repo_url=https://github.com/GoogleCloudPlatform/cloud-run-hello.git"
     ```
 
 ## Contributor License Agreement

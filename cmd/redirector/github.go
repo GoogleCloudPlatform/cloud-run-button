@@ -1,10 +1,11 @@
 package main
 
 import (
-	"github.com/pkg/errors"
 	"net/url"
 	"regexp"
 	"strings"
+
+	"github.com/pkg/errors"
 )
 
 type gitHubRepoRef struct {
@@ -33,7 +34,7 @@ func extractGitHubURL(u *url.URL) (repoRef, error) {
 	}
 	rr.user, rr.repo = parts[0], parts[1]
 
-	if len(parts)>2 {
+	if len(parts) > 2 {
 		subPath := parts[2]
 		group := ghSubpages.FindStringSubmatch(subPath)
 		if len(group) == 0 {

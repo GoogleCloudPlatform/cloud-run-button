@@ -19,6 +19,7 @@ import (
 	"bytes"
 	"context"
 	"errors"
+	"flag"
 	"fmt"
 	"os"
 	"os/exec"
@@ -27,13 +28,13 @@ import (
 
 	"github.com/briandowns/spinner"
 	"github.com/fatih/color"
-	"github.com/urfave/cli"
 )
 
 const (
 	flRepoURL   = "repo_url"
 	flGitBranch = "git_branch"
 	flSubDir    = "dir"
+	flPage      = "page"
 
 	projectCreateURL = "https://console.cloud.google.com/cloud-resource-manager"
 )
@@ -53,32 +54,39 @@ var (
 		color.New(color.Reset).Sprint("["),
 		color.New(color.Bold, color.FgYellow).Sprint("?"))
 	questionSelectFocusIcon = "❯"
+
+	opts  runOpts
+	flags = flag.NewFlagSet("cloudshell_open", flag.ContinueOnError)
 )
 
+func init() {
+	flags.StringVar(&opts.repoURL, flRepoURL, "", "url to git repo")
+	flags.StringVar(&opts.gitBranch, flGitBranch, "", "(optional) branch/revision to use from the git repo")
+	flags.StringVar(&opts.subDir, flSubDir, "", "(optional) sub-directory to deploy in the repo")
+	_ = flags.String(flPage, "", "ignored")
+}
 func main() {
-	app := cli.NewApp()
-	app.Name = "cloudshell_open"
-	app.Usage = "This tool is only meant to be invoked by Google Cloud Shell."
-	app.Description = "Specialized cloudshell_open for the Cloud Run Button"
-	app.Flags = []cli.Flag{
-		cli.StringFlag{
-			Name:  flRepoURL,
-			Usage: "url to git repo",
-		},
-		cli.StringFlag{
-			Name:  flGitBranch,
-			Usage: "(optional) branch/revision to use from the git repo",
-		},
-		cli.StringFlag{
-			Name:  flSubDir,
-			Usage: "(optional) sub-directory to deploy in the repo",
-		},
+	usage := flags.Usage
+	flags.Usage = func() {} // control when we print usage string
+	if err := flags.Parse(os.Args[1:]); err != nil {
+		if err == flag.ErrHelp {
+			usage()
+			return
+		} else {
+			fmt.Printf("%s flag parsing issue: %+v\n", warningLabel.Sprint("internal warning:"), err)
+		}
 	}
-	app.Action = run
-	if err := app.Run(os.Args); err != nil {
+
+	if err := run(opts); err != nil {
 		fmt.Printf("%s %+v\n", errorLabel.Sprint("Error:"), err)
 		os.Exit(1)
 	}
+}
+
+type runOpts struct {
+	repoURL   string
+	gitBranch string
+	subDir    string
 }
 
 func logProgress(msg, endMsg, errMsg string) func(bool) {
@@ -96,13 +104,13 @@ func logProgress(msg, endMsg, errMsg string) func(bool) {
 	}
 }
 
-func run(c *cli.Context) error {
+func run(opts runOpts) error {
 	ctx := context.Background()
 	highlight := func(s string) string { return color.CyanString(s) }
 	parameter := func(s string) string { return parameterLabel.Sprint(s) }
 	cmdColor := color.New(color.FgHiBlue)
 
-	repo := c.String(flRepoURL)
+	repo := opts.repoURL
 	if repo == "" {
 		return fmt.Errorf("--%s not specified", flRepoURL)
 	}
@@ -125,16 +133,16 @@ func run(c *cli.Context) error {
 		return err
 	}
 
-	if gitRev := c.String(flGitBranch); gitRev != "" {
-		if err := gitCheckout(cloneDir, gitRev); err != nil {
-			return fmt.Errorf("failed to checkout revision %q: %+v", gitRev, err)
+	if opts.gitBranch != "" {
+		if err := gitCheckout(cloneDir, opts.gitBranch); err != nil {
+			return fmt.Errorf("failed to checkout revision %q: %+v", opts.gitBranch, err)
 		}
 	}
 
 	appDir := cloneDir
-	if subDir := c.String(flSubDir); subDir != "" {
+	if opts.subDir != "" {
 		// verify if --dir is valid
-		appDir = filepath.Join(cloneDir, subDir)
+		appDir = filepath.Join(cloneDir, opts.subDir)
 		if fi, err := os.Stat(appDir); err != nil {
 			if os.IsNotExist(err) {
 				return fmt.Errorf("sub-directory doesn't exist in the cloned repository: %s", appDir)
@@ -173,7 +181,9 @@ func run(c *cli.Context) error {
 				"\n  1. Visit "+linkLabel.Sprint(projectCreateURL),
 				"\n  2. Create a new GCP project with a billing account",
 				"\n  3. Once you're done, press "+parameterLabel.Sprint("Enter")+" to continue: ")
-			bufio.NewReader(os.Stdin).ReadBytes('\n')
+			if _, err := bufio.NewReader(os.Stdin).ReadBytes('\n'); err != nil {
+				return err
+			}
 		}
 	}
 
@@ -187,13 +197,16 @@ func run(c *cli.Context) error {
 		return err
 	}
 
-	if err := waitForBilling(project, func(p string) {
+	if err := waitForBilling(project, func(p string) error {
 		fmt.Print(errorPrefix+" "+
 			warningLabel.Sprint("GCP project you chose does not have an active billing account!")+
 			"\n  1. Visit "+linkLabel.Sprint(projectCreateURL),
 			"\n  2. Associate a billing account for project "+parameterLabel.Sprint(p),
 			"\n  3. Once you're done, press "+parameterLabel.Sprint("Enter")+" to continue: ")
-		bufio.NewReader(os.Stdin).ReadBytes('\n')
+		if _, err := bufio.NewReader(os.Stdin).ReadBytes('\n'); err != nil {
+			return err
+		}
+		return nil
 	}); err != nil {
 		return err
 	}
@@ -279,7 +292,7 @@ func run(c *cli.Context) error {
 
 	serviceLabel := highlight(serviceName)
 	fmt.Println(infoPrefix + " FYI, running the following command:")
-	cmdColor.Printf("\tgcloud beta run deploy %s", parameter(serviceName))
+	cmdColor.Printf("\tgcloud run deploy %s", parameter(serviceName))
 	cmdColor.Println("\\")
 	cmdColor.Printf("\t  --project=%s", parameter(project))
 	cmdColor.Println("\\")
@@ -328,7 +341,7 @@ func checkCloudShellTrusted() (bool, error) {
 	return false, fmt.Errorf("error determining if cloud shell is trusted: %+v. output=\n%s", err, string(b))
 }
 
-func waitForBilling(projectID string, prompt func(string)) error {
+func waitForBilling(projectID string, prompt func(string) error) error {
 	for {
 		ok, err := checkBillingEnabled(projectID)
 		if err != nil {
@@ -337,6 +350,8 @@ func waitForBilling(projectID string, prompt func(string)) error {
 		if ok {
 			return nil
 		}
-		prompt(projectID)
+		if err := prompt(projectID); err != nil {
+			return err
+		}
 	}
 }

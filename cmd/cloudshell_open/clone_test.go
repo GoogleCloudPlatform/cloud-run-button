@@ -30,15 +30,8 @@ func TestValidRepoURL(t *testing.T) {
 	}{
 		{"", false},
 		{"http://should-not-be-http", false},
-		{"git@invalid characters", false},
-		{"git@github.com/user/bar?invalid=chars", false},
-		{"git@github.com/user/bar.git", true},
 		{"https://github.com/user/bar", true},
 		{"https://github.com/user/bar.git", true},
-		{"git://github.com/user/bar", true},
-		{"git://github.com/user/bar.git", true},
-		{" git://github.com/user/bar.git", false},
-		{"git://github.com/user/bar.git ", false},
 	}
 	for _, tt := range tests {
 		if got := validRepoURL(tt.in); got != tt.want {
@@ -55,11 +48,7 @@ func TestRepoDirName(t *testing.T) {
 	}{
 		{"foo-bar", "", true}, // cannot infer repo name after '/'
 		{"/bar", "bar", false},
-		{"git://github.com/user/foo/", "", true},  // base name empty
-		{"git://github.com/user/foo//", "", true}, // base name empty
 		{"https://github.com/foo/bar", "bar", false},
-		{"git://github.com/user/bar.git", "bar", false},
-		{"git://github.com/user/.bar.git", "", true}, // dir starts with dot
 	}
 	for _, tt := range tests {
 		got, err := repoDirName(tt.in)
@@ -80,7 +69,6 @@ func TestClone(t *testing.T) {
 		{"404", "http://example.com/git/repo", true},
 		{"https", "https://github.com/google/new-project", false},
 		{"https+.git", "https://github.com/google/new-project.git", false},
-		{"git@", "git@github.com:google/new-project.git", false},
 	}
 	testDir, err := ioutil.TempDir(os.TempDir(), "git-clone-test")
 	if err != nil {

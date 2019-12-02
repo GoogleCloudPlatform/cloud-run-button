@@ -22,7 +22,7 @@ import (
 )
 
 var (
-	repoPattern = regexp.MustCompile(`^(git@|git://|https://)[a-zA-Z0-9/._:-]*$`)
+	repoPattern = regexp.MustCompile(`^(https://)[a-zA-Z0-9/._:-]*$`)
 )
 
 func validRepoURL(repo string) bool { return repoPattern.MatchString(repo) }
