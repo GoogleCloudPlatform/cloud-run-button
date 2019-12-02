@@ -4,20 +4,21 @@
 
 1. Download Go 1.12.x
 1. Run the tests:
-```
-go test ./cmd/cloudshell_open
-```
+    ```
+    go test ./cmd/cloudshell_open
+    ```
 1. Build the command:
-```
-go build -o /tmp/cloudshell_open ./cmd/cloudshell_open
-```
-1. To, test the command you'll need a GCP service account credentials file, then run:
-```
-gcloud components update
-export GOOGLE_APPLICATION_CREDENTIALS=PATH_TO_YOUR_SERVICE_ACCOUNT_KEY_FILE
-gcloud auth activate-service-account --key-file=$GOOGLE_APPLICATION_CREDENTIALS
-(cd /tmp; ./cloudshell_open --repo_url=https://github.com/GoogleCloudPlatform/cloud-run-hello.git; rm -rf cloud-run-hello)
-```
+    ```
+    go build -o /tmp/cloudshell_open ./cmd/cloudshell_open
+    ```
+1. To test the command you'll need a GCP service account credentials file, then run:
+    ```
+    gcloud components update
+    export GOOGLE_APPLICATION_CREDENTIALS=PATH_TO_YOUR_SERVICE_ACCOUNT_KEY_FILE
+    gcloud auth activate-service-account --key-file=$GOOGLE_APPLICATION_CREDENTIALS
+    (cd /tmp; ./cloudshell_open --repo_url=https://github.com/GoogleCloudPlatform/cloud-run-hello.git; rm -rf cloud-run-hello)
+    ```
+
 
 ## Test Cloud Run Button's Underlying Command Locally in a Container
 
