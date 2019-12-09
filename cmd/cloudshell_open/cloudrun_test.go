@@ -25,7 +25,7 @@ func Test_tryFixServiceName(t *testing.T) {
 		{"no change", "foo", "foo"},
 		{"no change - empty", "", ""},
 		{"no leading letter - digit", "0abcdef", "svc-0abcdef"},
-		{"no leading letter - sign", "-abcdef", "svc--abcdef"},
+		{"no leading letter - sign", "-abcdef", "svc-abcdef"},
 		{"trailing dash", "abc-def-", "abc-def"},
 		{"trailing dashes", "abc-def---", "abc-def"},
 		{"only dashes, trimmed and prefixed", "---", "svc"},
@@ -40,7 +40,7 @@ func Test_tryFixServiceName(t *testing.T) {
 		{"leading digit + trunc",
 			"0123456789012345678901234567890123456789012345678901234567890123456789",
 			"svc-01234567890123456789012345678901234567890123456789012345678"},
-		{"spaces", "foo bar", "foo-bar"},
+		{"invalid chars", "+hello, world", "svc-hello-world"},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

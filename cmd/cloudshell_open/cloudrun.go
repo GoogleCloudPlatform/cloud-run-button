@@ -116,6 +116,14 @@ func tryFixServiceName(name string) string {
 
 	name = strings.ToLower(name)
 
+	reg := regexp.MustCompile("[^a-z0-9-]+")
+
+	name = reg.ReplaceAllString(name, "-")
+
+	if name[0] == '-' {
+		name = fmt.Sprintf("svc%s", name)
+	}
+
 	if !unicode.IsLetter([]rune(name)[0]) {
 		name = fmt.Sprintf("svc-%s", name)
 	}
@@ -127,10 +135,6 @@ func tryFixServiceName(name string) string {
 	for name[len(name)-1] == '-' {
 		name = name[:len(name)-1]
 	}
-
-	reg := regexp.MustCompile("[^a-z0-9-]+")
-
-	name = reg.ReplaceAllString(name, "-")
 
 	return name
 }
