@@ -128,7 +128,7 @@ func tryFixServiceName(name string) string {
 		name = name[:len(name)-1]
 	}
 
-	reg, _ := regexp.Compile("[^a-z0-9-]+")
+	reg := regexp.MustCompile("[^a-z0-9-]+")
 
 	name = reg.ReplaceAllString(name, "-")
 
