@@ -18,6 +18,7 @@ import (
 	"context"
 	"fmt"
 	"os/exec"
+	"regexp"
 	"sort"
 	"strings"
 	"unicode"
@@ -112,14 +113,28 @@ func tryFixServiceName(name string) string {
 	if name == "" {
 		return name
 	}
+
+	name = strings.ToLower(name)
+
+	reg := regexp.MustCompile("[^a-z0-9-]+")
+
+	name = reg.ReplaceAllString(name, "-")
+
+	if name[0] == '-' {
+		name = fmt.Sprintf("svc%s", name)
+	}
+
 	if !unicode.IsLetter([]rune(name)[0]) {
 		name = fmt.Sprintf("svc-%s", name)
 	}
+
 	if len(name) > 63 {
 		name = name[:63]
 	}
+
 	for name[len(name)-1] == '-' {
 		name = name[:len(name)-1]
 	}
+
 	return name
 }
