@@ -32,21 +32,30 @@ const (
 	defaultRunMemory = "512Mi"
 )
 
-func deploy(project, name, image, region string, envs []string, requireAuth bool) (string, error) {
-	authSetting := "--allow-unauthenticated"
-	if requireAuth {
-		authSetting = "--no-allow-unauthenticated"
+func optionsToFlags(options options) []string {
+	authSetting := "--no-allow-unauthenticated"
+	if *options.AllowUnauthenticated {
+		authSetting = "--allow-unauthenticated"
 	}
 
-	cmd := exec.Command("gcloud", "beta", "run", "deploy", "-q",
+	return []string{authSetting}
+}
+
+func deploy(project, name, image, region string, envs []string, options options) (string, error) {
+	optionsFlags := optionsToFlags(options)
+
+	params := []string {
+		"beta", "run", "deploy", "-q",
 		name,
 		"--project", project,
 		"--platform", "managed",
 		"--image", image,
 		"--region", region,
 		"--memory", defaultRunMemory,
-		authSetting,
-		"--set-env-vars", strings.Join(envs, ","))
+		"--set-env-vars", strings.Join(envs, ","),
+	}
+
+	cmd := exec.Command("gcloud", append(params, optionsFlags...)...)
 	if b, err := cmd.CombinedOutput(); err != nil {
 		return "", fmt.Errorf("failed to deploy to Cloud Run: %+v. output:\n%s", err, string(b))
 	}

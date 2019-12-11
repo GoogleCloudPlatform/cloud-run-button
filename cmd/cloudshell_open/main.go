@@ -290,10 +290,7 @@ func run(opts runOpts) error {
 		}
 	}
 
-	requireAuth := false
-	if appFile.RequireAuth != nil {
-		requireAuth = *appFile.RequireAuth
-	}
+	optionsFlags := optionsToFlags(appFile.Options)
 
 	serviceLabel := highlight(serviceName)
 	fmt.Println(infoPrefix + " FYI, running the following command:")
@@ -308,17 +305,15 @@ func run(opts runOpts) error {
 	cmdColor.Printf("\t  --image=%s", parameter(image))
 	cmdColor.Println("\\")
 	cmdColor.Printf("\t  --memory=%s", parameter(defaultRunMemory))
-	cmdColor.Println("\\")
-	if requireAuth {
-		cmdColor.Printf("\t  --no-allow-unauthenticated\n")
-	} else {
-		cmdColor.Printf("\t  --allow-unauthenticated\n")
+	for _, optionFlag := range optionsFlags {
+		cmdColor.Println("\\")
+		cmdColor.Printf("\t  %s\n", optionFlag)
 	}
 
 	end = logProgress(fmt.Sprintf("Deploying service %s to Cloud Run...", serviceLabel),
 		fmt.Sprintf("Successfully deployed service %s to Cloud Run.", serviceLabel),
 		"Failed deploying the application to Cloud Run.")
-	url, err := deploy(project, serviceName, image, region, envs, requireAuth)
+	url, err := deploy(project, serviceName, image, region, envs, appFile.Options)
 	end(err == nil)
 	if err != nil {
 		return err

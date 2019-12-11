@@ -88,14 +88,15 @@ func Test_parseAppFile(t *testing.T) {
 		wantErr bool
 	}{
 		{"empty json is EOF", ``, nil, true},
-		{"empty object ok", `{}`, &appFile{RequireAuth: &fals}, false},
+		{"empty object ok", `{}`, &appFile{}, false},
 		{"bad object at root", `1`, nil, true},
 		{"unknown field", `{"foo":"bar"}`, nil, true},
-		{"require auth true", `{"require-auth": true}`, &appFile{RequireAuth: &tru}, false},
+		{"allow-unauthenticated true", `{"options": {"allow-unauthenticated": true}}`,
+			&appFile{Options:options{AllowUnauthenticated:&tru}}, false},
 		{"wrong env type", `{"env": "foo"}`, nil, true},
 		{"wrong env value type", `{"env": {"foo":"bar"}}`, nil, true},
 		{"env not array", `{"env": []}`, nil, true},
-		{"empty env list is ok", `{"env": {}}`, &appFile{RequireAuth: &fals, Env: map[string]env{}}, false},
+		{"empty env list is ok", `{"env": {}}`, &appFile{Env: map[string]env{}}, false},
 		{"non-string key type in env", `{"env": {
 			1: {}
 		}}`, nil, true},
@@ -103,10 +104,10 @@ func Test_parseAppFile(t *testing.T) {
 			"KEY": {"unknown":"value"}
 		}}`, nil, true},
 		{"required is true by default", `{
-			"env": {"KEY":{}}}`, &appFile{RequireAuth: &fals, Env: map[string]env{
+			"env": {"KEY":{}}}`, &appFile{Env: map[string]env{
 			"KEY": env{Required: &tru}}}, false},
 		{"required can be set to false", `{
-			"env": {"KEY":{"required":false}}}`, &appFile{RequireAuth: &fals,
+			"env": {"KEY":{"required":false}}}`, &appFile{
 			Env: map[string]env{"KEY": env{Required: &fals}}}, false},
 		{"required has to be bool", `{
 			"env": {"KEY":{"required": "false"}}}`, nil, true},
@@ -125,7 +126,7 @@ func Test_parseAppFile(t *testing.T) {
 			}}`,
 			&appFile{
 				Name:        "foo",
-				RequireAuth: &fals,
+				Options: options{},
 				Env: map[string]env{
 					"KEY_1": env{
 						Required:    &fals,
