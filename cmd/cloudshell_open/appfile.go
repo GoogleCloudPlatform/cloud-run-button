@@ -39,15 +39,15 @@ type options struct {
 	AllowUnauthenticated *bool `json:"allow-unauthenticated"`
 }
 
-type scripts struct {
-	PostDeploy string `json:"postdeploy"`
+type hook struct {
+	PostCreate string `json:"postcreate"`
 }
 
 type appFile struct {
 	Name        string         `json:"name"`
 	Env         map[string]env `json:"env"`
-	Scripts 	scripts        `json:"scripts"`
 	Options     options        `json:"options"`
+	Hooks       hook           `json:"hook"`
 
 	// The following are unused variables that are still silently accepted
 	// for compatibility with Heroku app.json files.

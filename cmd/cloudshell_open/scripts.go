@@ -21,7 +21,7 @@ import (
 )
 
 func runScript(dir, phase string, project string, service string, region string, command string) error {
-	cmd := exec.Command("sh", "-c", command)
+	cmd := exec.Command(command)
 	cmd.Env = []string{
 		fmt.Sprintf("PROJECT_ID=%s", project),
 		fmt.Sprintf("SERVICE=%s", service),

@@ -25,6 +25,7 @@ import (
 	"os/exec"
 	"path/filepath"
 	"strings"
+	"reflect"
 	"time"
 
 	"github.com/briandowns/spinner"
@@ -240,7 +241,7 @@ func run(opts runOpts) error {
 
 	existingEnvVars := make(map[string]struct{})
 	// todo(jamesward) actually determine if the service exists instead of assuming it doesn't if we get an error
-	_, err = describe(project, serviceName, region)
+	existingService, err := describe(project, serviceName, region)
 	if err == nil {
 		// service exists
 		existingEnvVars, err = envVars(project, serviceName, region)
@@ -343,10 +344,10 @@ func run(opts runOpts) error {
 		return err
 	}
 
-	if appFile.Scripts.Postdeploy != "" {
-		fmt.Println(infoPrefix + "Running postdeploy script:")
-		cmdColor.Printf("\t%s\n", appFile.Scripts.Postdeploy)
-		err := runScript(appDir, "postdeploy", project, serviceName, region, appFile.Scripts.Postdeploy)
+	if appFile.Hooks.PostCreate != "" && reflect.DeepEqual(existingService, service{}) {
+		fmt.Println(infoPrefix + "Running postcreate script:")
+		cmdColor.Printf("\t%s\n", appFile.Hooks.PostCreate)
+		err := runScript(appDir, "postcreate", project, serviceName, region, appFile.Hooks.PostCreate)
 		if err != nil {
 			return err
 		}
