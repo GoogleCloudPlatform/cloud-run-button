@@ -23,7 +23,7 @@ Cloud](https://deploy.cloud.run/button.svg)](https://deploy.cloud.run/?git_repo=
     [![Run on Google Cloud](https://deploy.cloud.run/button.svg)](https://deploy.cloud.run)
     ```
 
-1. If the repo contains a `Dockerfile`, it will be built using the `docker build` command. Otherwise, the [CNCF Buildpacks](https://buildpacks.io/) (i.e. the `pack build` command) will be used to build the repo ([buildpack samples][buildpack-samples]).
+1. If the repo contains a `Dockerfile`, it will be built using the `docker build` command.  If the repo uses Maven for the build and it contains the [Jib plugin](https://github.com/GoogleContainerTools/jib/tree/master/jib-maven-plugin), then the container image will be built with Jib ([Jib Spring Boot Sample](https://github.com/GoogleContainerTools/jib/tree/master/examples/spring-boot)).  Otherwise, [CNCF Buildpacks](https://buildpacks.io/) (i.e. the `pack build` command) will attempt to build the repo ([buildpack samples][buildpack-samples]).
 
 [buildpack-samples]: https://github.com/GoogleCloudPlatform/buildpack-samples
 
