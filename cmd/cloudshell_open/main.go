@@ -24,6 +24,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"strings"
 	"time"
 
 	"github.com/briandowns/spinner"
@@ -136,6 +137,15 @@ func run(opts runOpts) error {
 	if opts.gitBranch != "" {
 		if err := gitCheckout(cloneDir, opts.gitBranch); err != nil {
 			return fmt.Errorf("failed to checkout revision %q: %+v", opts.gitBranch, err)
+		}
+	}
+
+	fullCloneDir, err := filepath.Abs(cloneDir)
+	pathDirs := strings.Split(os.Getenv("PATH"), string(os.PathListSeparator))
+
+	for _, p := range pathDirs {
+		if strings.HasPrefix(p, fullCloneDir) {
+			return fmt.Errorf("Cloning git repo to %s could potentially add executable files to $PATH. Aborting.", fullCloneDir)
 		}
 	}
 
