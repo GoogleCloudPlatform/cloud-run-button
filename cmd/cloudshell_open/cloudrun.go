@@ -32,16 +32,30 @@ const (
 	defaultRunMemory = "512Mi"
 )
 
-func deploy(project, name, image, region string, envs []string) (string, error) {
-	cmd := exec.Command("gcloud", "run", "deploy", "-q",
+func optionsToFlags(options options) []string {
+	authSetting := "--no-allow-unauthenticated"
+	if *options.AllowUnauthenticated {
+		authSetting = "--allow-unauthenticated"
+	}
+
+	return []string{authSetting}
+}
+
+func deploy(project, name, image, region string, envs []string, options options) (string, error) {
+	optionsFlags := optionsToFlags(options)
+
+	params := []string {
+		"beta", "run", "deploy", "-q",
 		name,
 		"--project", project,
 		"--platform", "managed",
 		"--image", image,
 		"--region", region,
 		"--memory", defaultRunMemory,
-		"--allow-unauthenticated",
-		"--set-env-vars", strings.Join(envs, ","))
+		"--set-env-vars", strings.Join(envs, ","),
+	}
+
+	cmd := exec.Command("gcloud", append(params, optionsFlags...)...)
 	if b, err := cmd.CombinedOutput(); err != nil {
 		return "", fmt.Errorf("failed to deploy to Cloud Run: %+v. output:\n%s", err, string(b))
 	}

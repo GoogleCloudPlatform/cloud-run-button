@@ -55,6 +55,9 @@ For example:
       "TITLE": {
           "description": "title for your site"
       }
+  },
+  "options": {
+    "allow-unauthenticated": false
   }
 }
 ```
@@ -70,6 +73,8 @@ Reference:
   - `value`: _(optional)_ default value for the variable, should be a string.
   - `required`, _(optional, default: `true`)_ indicates if they user must provide
     a value for this variable.
+- `options`: _(optional)_ Options when deploying the service
+  - `allow-unauthenticated`: _(optional, default: `true`)_ allow unauthenticated requests
 
 ### Notes
 

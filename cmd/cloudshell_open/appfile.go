@@ -32,9 +32,14 @@ type env struct {
 	Required    *bool  `json:"required"`
 }
 
+type options struct {
+	AllowUnauthenticated *bool `json:"allow-unauthenticated"`
+}
+
 type appFile struct {
-	Name string         `json:"name"`
-	Env  map[string]env `json:"env"`
+	Name        string         `json:"name"`
+	Env         map[string]env `json:"env"`
+	Options     options        `json:"options"`
 
 	// The following are unused variables that are still silently accepted
 	// for compatibility with Heroku app.json files.
