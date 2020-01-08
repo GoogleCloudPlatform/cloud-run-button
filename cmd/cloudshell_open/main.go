@@ -141,6 +141,11 @@ func run(opts runOpts) error {
 	}
 
 	fullCloneDir, err := filepath.Abs(cloneDir)
+
+	if err != nil {
+		return err
+	}
+
 	pathDirs := strings.Split(os.Getenv("PATH"), string(os.PathListSeparator))
 
 	for _, p := range pathDirs {
