@@ -24,6 +24,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"strings"
 	"time"
 
 	"github.com/briandowns/spinner"
@@ -131,6 +132,12 @@ func run(opts runOpts) error {
 	end(err == nil)
 	if err != nil {
 		return err
+	}
+
+	if ok, err := hasSubDirsInPATH(cloneDir); err != nil {
+		return fmt.Errorf("failed to determine if clone dir has subdirectories in PATH: %v", err)
+	} else if ok {
+		return fmt.Errorf("cloning git repo to %s could potentially add executable files to PATH", cloneDir)
 	}
 
 	if opts.gitBranch != "" {
@@ -358,4 +365,41 @@ func waitForBilling(projectID string, prompt func(string) error) error {
 			return err
 		}
 	}
+}
+
+// hasSubDirsInPATH determines if anything in PATH is a sub-directory of dir.
+func hasSubDirsInPATH(dir string) (bool, error) {
+	path := os.Getenv("PATH")
+	if path == "" {
+		return false, errors.New("PATH is empty")
+	}
+
+	paths := strings.Split(path, string(os.PathListSeparator))
+	for _, p := range paths {
+		ok, err := isSubPath(dir, p)
+		if err != nil {
+			return false, fmt.Errorf("failure assessing if paths are the same: %v", err)
+		}
+		if ok {
+			return true, nil
+		}
+	}
+	return false, nil
+}
+
+// isSubPath determines b is under a. Both paths are evaluated by computing their abs paths.
+func isSubPath(a, b string) (bool, error) {
+	a, err := filepath.Abs(a)
+	if err != nil {
+		return false, fmt.Errorf("failed to get absolute path for %s: %+v", a, err)
+	}
+	b, err = filepath.Abs(b)
+	if err != nil {
+		return false, fmt.Errorf("failed to get absolute path for %s: %+v", b, err)
+	}
+	v, err := filepath.Rel(a, b)
+	if err != nil {
+		return false, fmt.Errorf("failed to calculate relative path: %v", err)
+	}
+	return !strings.HasPrefix(v, ".."+string(os.PathSeparator)), nil
 }
