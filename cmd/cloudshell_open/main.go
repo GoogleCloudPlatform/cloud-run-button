@@ -134,7 +134,7 @@ func run(opts runOpts) error {
 		return err
 	}
 
-	if ok, err := hasSubDirsinPATH(cloneDir); err != nil {
+	if ok, err := hasSubDirsInPATH(cloneDir); err != nil {
 		return fmt.Errorf("failed to determine if clone dir has subdirectories in PATH: %v", err)
 	} else if ok {
 		return fmt.Errorf("cloning git repo to %s could potentially add executable files to PATH", cloneDir)
@@ -367,8 +367,8 @@ func waitForBilling(projectID string, prompt func(string) error) error {
 	}
 }
 
-// hasSubDirsinPATH determines if anything in PATH is a sub-directory of dir.
-func hasSubDirsinPATH(dir string) (bool, error) {
+// hasSubDirsInPATH determines if anything in PATH is a sub-directory of dir.
+func hasSubDirsInPATH(dir string) (bool, error) {
 	path := os.Getenv("PATH")
 	if path == "" {
 		return false, errors.New("PATH is empty")

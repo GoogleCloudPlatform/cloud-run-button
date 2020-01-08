@@ -99,13 +99,13 @@ func Test_hasSubDirsInPATH(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			op := os.Getenv("PATH")
 			os.Setenv("PATH", tt.args.path)
-			got, err := hasSubDirsinPATH(tt.args.dir)
+			got, err := hasSubDirsInPATH(tt.args.dir)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("hasSubDirsinPATH(%s) error = %v, wantErr %v", tt.args.dir, err, tt.wantErr)
+				t.Errorf("hasSubDirsInPATH(%s) error = %v, wantErr %v", tt.args.dir, err, tt.wantErr)
 				return
 			}
 			if got != tt.want {
-				t.Errorf("hasSubDirsinPATH(%s) got = %v, want %v", tt.args.dir, got, tt.want)
+				t.Errorf("hasSubDirsInPATH(%s) got = %v, want %v", tt.args.dir, got, tt.want)
 			}
 			os.Setenv("PATH", op)
 		})
