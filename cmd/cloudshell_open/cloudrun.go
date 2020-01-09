@@ -35,37 +35,23 @@ const (
 )
 
 type service struct {
-	Spec serviceSpec `json:"spec"`
-	Status serviceStatus `json:"status"`
-}
-
-type serviceSpec struct {
-	Template serviceTemplate `json:"template"`
-}
-
-type serviceTemplate struct {
-	Spec templateSpec `json:"spec"`
-}
-
-type templateSpec struct {
-	Containers []container `json:"containers"`
-}
-
-type container struct {
-	EnvVars []envVar `json:"env"`
-}
-
-type envVar struct {
-	Name string `json:"name"`
-	Value string `json:"value"`
-}
-
-type serviceStatus struct {
-	Address address `json:"address"`
-}
-
-type address struct {
-	Url string `json:"url"`
+	Spec struct {
+		Template struct {
+			Spec struct {
+				Containers []struct {
+					EnvVars []struct {
+						Name string `json:"name"`
+						Value string `json:"value"`
+					} `json:"env"`
+				} `json:"containers"`
+			} `json:"spec"`
+		} `json:"template"`
+	} `json:"spec"`
+	Status struct {
+		Address struct {
+			Url string `json:"url"`
+		} `json:"address"`
+	} `json:"status"`
 }
 
 func optionsToFlags(options options) []string {
