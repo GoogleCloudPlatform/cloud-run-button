@@ -178,7 +178,7 @@ func envVars(project, name, region string) (map[string]struct{}, error) {
 	service, err := describe(project, name, region)
 
 	if err != nil {
-		return map[string]struct{}{}, err
+		return nil, err
 	}
 
 	existing := map[string]struct{}{}
