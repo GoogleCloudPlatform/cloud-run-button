@@ -181,7 +181,7 @@ func envVars(project, name, region string) (map[string]struct{}, error) {
 		return nil, err
 	}
 
-	existing := map[string]struct{}{}
+	existing := make(map[string]struct{})
 
 	for _, container := range service.Spec.Template.Spec.Containers {
 		for _, envVar := range container.EnvVars {

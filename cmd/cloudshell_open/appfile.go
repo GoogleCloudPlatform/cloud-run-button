@@ -86,6 +86,12 @@ func parseAppFile(r io.Reader) (*appFile, error) {
 		v.Env[k] = env
 	}
 
+	for k, env := range v.Env {
+		if env.Generator == "secret" && env.Value != "" {
+			return nil, fmt.Errorf("Env Var '%s' can't have both a value and use the secret generator", k)
+		}
+	}
+
 	return &v, nil
 }
 

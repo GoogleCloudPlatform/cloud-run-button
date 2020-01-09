@@ -238,7 +238,8 @@ func run(opts runOpts) error {
 
 	image := fmt.Sprintf("gcr.io/%s/%s", project, serviceName)
 
-	existingEnvVars := map[string]struct{}{}
+	existingEnvVars := make(map[string]struct{})
+	// todo(jamesward) actually determine if the service exists instead of assuming it doesn't if we get an error
 	_, err = describe(project, serviceName, region)
 	if err == nil {
 		// service exists
@@ -323,12 +324,15 @@ func run(opts runOpts) error {
 	cmdColor.Println("\\")
 	cmdColor.Printf("\t  --memory=%s", parameter(defaultRunMemory))
 
+	if len(envs) > 0 {
+		cmdColor.Println("\\")
+		cmdColor.Printf("\t  --update-env-vars=%s", parameter(strings.Join(envs, ",")))
+	}
+
 	for _, optionFlag := range optionsFlags {
 		cmdColor.Println("\\")
 		cmdColor.Printf("\t  %s\n", optionFlag)
 	}
-
-	// todo(jamesward) display env vars flag
 
 	end = logProgress(fmt.Sprintf("Deploying service %s to Cloud Run...", serviceLabel),
 		fmt.Sprintf("Successfully deployed service %s to Cloud Run.", serviceLabel),
