@@ -11,14 +11,24 @@
     ```
     go build -o /tmp/cloudshell_open ./cmd/cloudshell_open
     ```
-1. To test the command you'll need a GCP service account credentials file, then run:
-    ```
-    gcloud components update
-    export GOOGLE_APPLICATION_CREDENTIALS=PATH_TO_YOUR_SERVICE_ACCOUNT_KEY_FILE
-    gcloud auth activate-service-account --key-file=$GOOGLE_APPLICATION_CREDENTIALS
-    (cd /tmp; ./cloudshell_open --repo_url=https://github.com/GoogleCloudPlatform/cloud-run-hello.git; rm -rf cloud-run-hello)
-    ```
-
+1. To test the command:
+    1. [Enable the cloudresourcemanager API](https://console.developers.google.com/apis/api/cloudresourcemanager.googleapis.com/overview)
+    1. [Enable the billing API](https://console.developers.google.com/apis/api/cloudbilling.googleapis.com/overview)
+    1. Create a Service Account with the *Cloud Run Admin*, *ServiceEnabler*, *Service Account User*, and *Storage Admin* roles
+    1. Download the JSON key
+    1. Update gcloud:
+        ```
+        gcloud components update
+        ```
+    1. Authenticate gcloud as the service account:
+        ```
+        export GOOGLE_APPLICATION_CREDENTIALS=PATH_TO_YOUR_SERVICE_ACCOUNT_KEY_FILE
+        gcloud auth activate-service-account --key-file=$GOOGLE_APPLICATION_CREDENTIALS
+        ```
+    1. Run the button:
+        ```
+        (cd /tmp; ./cloudshell_open --repo_url=https://github.com/GoogleCloudPlatform/cloud-run-hello.git; rm -rf cloud-run-hello)
+        ```
 
 ## Test Cloud Run Button's Underlying Command Locally in a Container
 

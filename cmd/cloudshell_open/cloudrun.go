@@ -33,9 +33,9 @@ const (
 )
 
 func optionsToFlags(options options) []string {
-	authSetting := "--no-allow-unauthenticated"
-	if *options.AllowUnauthenticated {
-		authSetting = "--allow-unauthenticated"
+	authSetting := "--allow-unauthenticated"
+	if options.AllowUnauthenticated != nil && *options.AllowUnauthenticated == false {
+		authSetting = "--no-allow-unauthenticated"
 	}
 
 	return []string{authSetting}
