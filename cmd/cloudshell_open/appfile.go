@@ -145,7 +145,7 @@ func promptEnv(list map[string]env) ([]string, error) {
 		if e.Generator == "secret" {
 			resp, err := rand64String()
 			if err != nil {
-				return nil, fmt.Errorf("failed to generate secret for %s - %v", k, err)
+				return nil, fmt.Errorf("failed to generate secret for %s : %v", k, err)
 			}
 			out = append(out, k+"="+resp)
 		} else {
