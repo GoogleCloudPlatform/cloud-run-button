@@ -142,10 +142,14 @@ func Test_parseAppFile(t *testing.T) {
 						Required: &tru,
 					},
 				}}, false},
-		{"postcreate script", `{
-			"hook": {
-				"postcreate": "foo.sh"
-			}}`, &appFile{Hooks: hook{PostCreate: "foo.sh"}}, false},
+		{"postcreate", `{
+			"hooks": {
+				"postcreate": {
+					"commands": [
+						"echo test"
+					]
+				}
+			}}`, &appFile{Hooks: hooks{PostCreate:hook{Commands:[]string{"echo test"}}}}, false},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

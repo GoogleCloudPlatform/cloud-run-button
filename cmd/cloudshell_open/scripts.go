@@ -18,21 +18,21 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
+
+	"github.com/fatih/color"
 )
 
-func runScript(dir, phase string, project string, service string, region string, command string) error {
-	cmd := exec.Command(command)
-	cmd.Env = []string{
-		fmt.Sprintf("PROJECT_ID=%s", project),
-		fmt.Sprintf("SERVICE=%s", service),
-		fmt.Sprintf("REGION=%s", region)}
+var cmdColor = color.New(color.FgHiBlue)
+
+func runScript(dir, command string, envs []string) error {
+	fmt.Println(infoPrefix + "Running command:")
+	cmdColor.Printf("\t%s\n", command)
+
+	cmd := exec.Command("/bin/bash", "-c", "set -euo pipefail; set -x; " + command)
+	cmd.Env = envs
 	cmd.Dir = dir
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 	cmd.Stdin = os.Stdin
-	err := cmd.Run()
-	if err != nil {
-		return fmt.Errorf("%s script failed: %v", phase, err)
-	}
-	return nil
+	return cmd.Run()
 }

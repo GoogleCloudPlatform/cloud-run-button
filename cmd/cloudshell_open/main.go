@@ -309,6 +309,20 @@ func run(opts runOpts) error {
 		}
 	}
 
+	hookEnvs := append(envs,
+		fmt.Sprintf("PROJECT_ID=%s", project),
+		fmt.Sprintf("SERVICE=%s", serviceName),
+		fmt.Sprintf("REGION=%s", region))
+
+	if reflect.DeepEqual(existingService, service{}) {
+		for _, command := range appFile.Hooks.PreCreate.Commands {
+			err = runScript(appDir, command, hookEnvs)
+			if err != nil {
+				return err
+			}
+		}
+	}
+
 	optionsFlags := optionsToFlags(appFile.Options)
 
 	serviceLabel := highlight(serviceName)
@@ -344,12 +358,12 @@ func run(opts runOpts) error {
 		return err
 	}
 
-	if appFile.Hooks.PostCreate != "" && reflect.DeepEqual(existingService, service{}) {
-		fmt.Println(infoPrefix + "Running postcreate script:")
-		cmdColor.Printf("\t%s\n", appFile.Hooks.PostCreate)
-		err := runScript(appDir, "postcreate", project, serviceName, region, appFile.Hooks.PostCreate)
-		if err != nil {
-			return err
+	if reflect.DeepEqual(existingService, service{}) {
+		for _, command := range appFile.Hooks.PostCreate.Commands {
+			err = runScript(appDir, command, hookEnvs)
+			if err != nil {
+				return err
+			}
 		}
 	}
 

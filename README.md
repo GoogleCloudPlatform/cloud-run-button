@@ -62,8 +62,17 @@ For example:
     "options": {
         "allow-unauthenticated": false
     },
-    "hook": {
-        "postcreate": "postcreate.sh"
+    "hooks": {
+        "precreate": {
+            "commands": [
+                "echo 'test'"
+            ]
+        },
+        "postcreate": {
+            "commands": [
+                "./setup.sh"
+            ]
+        }
     }
 }
 ```
@@ -82,8 +91,11 @@ Reference:
   - `generator`, _(optional)_ use a generator for the value, currently only support `secret`
 - `options`: _(optional)_ Options when deploying the service
   - `allow-unauthenticated`: _(optional, default: `true`)_ allow unauthenticated requests
-- `hook`: _(optional)_ Run scripts at phases of the deploy process
-  - `postcreate`: _(optional) Runs the specified script file after the service has been created
+- `hooks`: _(optional)_ Run scripts at phases of the deploy process
+  - `precreate`: _(optional) Runs the specified commands before the service has been created
+    - `commands`: _(array of strings) The list of commands to run
+  - `postcreate`: _(optional) Runs the specified commands after the service has been created
+    - `commands`: _(array of strings) The list of commands to run
 
 ### Notes
 
