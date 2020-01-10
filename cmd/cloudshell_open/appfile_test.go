@@ -113,6 +113,11 @@ func Test_parseAppFile(t *testing.T) {
 			"env": {"KEY":{"required": "false"}}}`, nil, true},
 		{"value has to be string", `{
 			"env": {"KEY":{"value": 100}}}`, nil, true},
+		{"generator secret", `{
+			"env": {"KEY":{"generator": "secret"}}}`, &appFile{Env: map[string]env{
+			"KEY": env{Required: &tru, Generator: "secret"}}}, false},
+		{"generator secret and value", `{
+			"env": {"KEY":{"generator": "secret", "value": "asdf"}}}`, nil, true},
 		{"parses ok", `{
 			"name": "foo",
 			"env": {

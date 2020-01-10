@@ -14,7 +14,9 @@
 
 package main
 
-import "testing"
+import (
+	"testing"
+)
 
 func Test_tryFixServiceName(t *testing.T) {
 	tests := []struct {

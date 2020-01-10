@@ -164,10 +164,6 @@ func run(opts runOpts) error {
 	if err != nil {
 		return fmt.Errorf("error attempting to read the app.json from the cloned repository: %+v", err)
 	}
-	envs, err := promptEnv(appFile.Env)
-	if err != nil {
-		return err
-	}
 
 	var projects []string
 
@@ -242,6 +238,21 @@ func run(opts runOpts) error {
 
 	image := fmt.Sprintf("gcr.io/%s/%s", project, serviceName)
 
+	existingEnvVars := make(map[string]struct{})
+	// todo(jamesward) actually determine if the service exists instead of assuming it doesn't if we get an error
+	_, err = describe(project, serviceName, region)
+	if err == nil {
+		// service exists
+		existingEnvVars, err = envVars(project, serviceName, region)
+	}
+
+	neededEnvs := needEnvs(appFile.Env, existingEnvVars)
+
+	envs, err := promptOrGenerateEnvs(neededEnvs)
+	if err != nil {
+		return err
+	}
+
 	exists, err := dockerFileExists(appDir)
 	jibMaven := false
 	if err != nil {
@@ -312,6 +323,12 @@ func run(opts runOpts) error {
 	cmdColor.Printf("\t  --image=%s", parameter(image))
 	cmdColor.Println("\\")
 	cmdColor.Printf("\t  --memory=%s", parameter(defaultRunMemory))
+
+	if len(envs) > 0 {
+		cmdColor.Println("\\")
+		cmdColor.Printf("\t  --update-env-vars=%s", parameter(strings.Join(envs, ",")))
+	}
+
 	for _, optionFlag := range optionsFlags {
 		cmdColor.Println("\\")
 		cmdColor.Printf("\t  %s\n", optionFlag)
