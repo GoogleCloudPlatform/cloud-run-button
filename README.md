@@ -91,7 +91,7 @@ Reference:
   - `generator`, _(optional)_ use a generator for the value, currently only support `secret`
 - `options`: _(optional)_ Options when deploying the service
   - `allow-unauthenticated`: _(optional, default: `true`)_ allow unauthenticated requests
-- `hooks`: _(optional)_ Run scripts at phases of the deploy process
+- `hooks`: _(optional)_ Run commands in separate bash shells with the environment variables configured for the application and environment variables for `PROJECT_ID`, `SERVICE`, and `REGION`. Command outputs are shown as they are executed.
   - `precreate`: _(optional)_ Runs the specified commands before the service has been created
     - `commands`: _(array of strings)_ The list of commands to run
   - `postcreate`: _(optional)_ Runs the specified commands after the service has been created
