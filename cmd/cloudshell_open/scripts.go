@@ -22,11 +22,8 @@ import (
 	"github.com/fatih/color"
 )
 
-var cmdColor = color.New(color.FgHiBlue)
-
 func runScript(dir, command string, envs []string) error {
-	fmt.Println(infoPrefix + "Running command:")
-	cmdColor.Printf("\t%s\n", command)
+	fmt.Println(infoPrefix + "Running command: " + color.BlueString(command))
 
 	cmd := exec.Command("/bin/bash", "-c", "set -euo pipefail; set -x; " + command)
 	cmd.Env = envs
@@ -35,4 +32,15 @@ func runScript(dir, command string, envs []string) error {
 	cmd.Stderr = os.Stderr
 	cmd.Stdin = os.Stdin
 	return cmd.Run()
+}
+
+func runScripts(dir string, commands, envs []string) error {
+	for _, command := range commands {
+		err := runScript(dir, command, envs)
+		if err != nil {
+			return fmt.Errorf("failed to execute command[%d]: %v", command, err)
+		}
+	}
+
+	return nil
 }

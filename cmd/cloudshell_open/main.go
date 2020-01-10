@@ -25,7 +25,6 @@ import (
 	"os/exec"
 	"path/filepath"
 	"strings"
-	"reflect"
 	"time"
 
 	"github.com/briandowns/spinner"
@@ -309,17 +308,16 @@ func run(opts runOpts) error {
 		}
 	}
 
-	hookEnvs := append(envs,
-		fmt.Sprintf("PROJECT_ID=%s", project),
-		fmt.Sprintf("SERVICE=%s", serviceName),
-		fmt.Sprintf("REGION=%s", region))
+	projectEnv := fmt.Sprintf("PROJECT_ID=%s", project)
+	serviceEnv := fmt.Sprintf("K_SERVICE=%s", serviceName)
+	regionEnv := fmt.Sprintf("REGION=%s", region)
 
-	if reflect.DeepEqual(existingService, service{}) {
-		for _, command := range appFile.Hooks.PreCreate.Commands {
-			err = runScript(appDir, command, hookEnvs)
-			if err != nil {
-				return err
-			}
+	hookEnvs := append([]string{projectEnv, serviceEnv, regionEnv}, envs...)
+
+	if existingService == nil {
+		err = runScripts(appDir, appFile.Hooks.PreCreate.Commands, hookEnvs)
+		if err != nil {
+			return err
 		}
 	}
 
@@ -358,12 +356,10 @@ func run(opts runOpts) error {
 		return err
 	}
 
-	if reflect.DeepEqual(existingService, service{}) {
-		for _, command := range appFile.Hooks.PostCreate.Commands {
-			err = runScript(appDir, command, hookEnvs)
-			if err != nil {
-				return err
-			}
+	if existingService == nil {
+		err = runScripts(appDir, appFile.Hooks.PostCreate.Commands, hookEnvs)
+		if err != nil {
+			return err
 		}
 	}
 
