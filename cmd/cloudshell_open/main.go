@@ -246,9 +246,9 @@ func run(opts runOpts) error {
 		existingEnvVars, err = envVars(project, serviceName, region)
 	}
 
-	promptForEnv := prepEnv(appFile.Env, existingEnvVars)
+	neededEnvs := needEnvs(appFile.Env, existingEnvVars)
 
-	envs, err := promptEnv(promptForEnv)
+	envs, err := promptOrGenerateEnvs(neededEnvs)
 	if err != nil {
 		return err
 	}

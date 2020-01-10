@@ -88,7 +88,7 @@ func parseAppFile(r io.Reader) (*appFile, error) {
 
 	for k, env := range v.Env {
 		if env.Generator == "secret" && env.Value != "" {
-			return nil, fmt.Errorf("Env Var '%s' can't have both a value and use the secret generator", k)
+			return nil, fmt.Errorf("env var %q can't have both a value and use the secret generator", k)
 		}
 	}
 
@@ -127,7 +127,7 @@ func rand64String() (string, error) {
 }
 
 // takes the envs defined in app.json, and the existing envs and returns the new envs that need to be prompted for
-func prepEnv(list map[string]env, existing map[string]struct{}) map[string]env {
+func needEnvs(list map[string]env, existing map[string]struct{}) map[string]env {
 	for k := range list {
 		_, isPresent := existing[k]
 		if isPresent {
@@ -136,6 +136,44 @@ func prepEnv(list map[string]env, existing map[string]struct{}) map[string]env {
 	}
 
 	return list
+}
+
+func promptOrGenerateEnvs(list map[string]env) ([]string, error) {
+	var toGenerate []string
+	var toPrompt = make(map[string]env)
+
+	for k, e := range list {
+		if e.Generator == "secret" {
+			toGenerate = append(toGenerate, k)
+		} else {
+			toPrompt[k] = e
+		}
+	}
+
+	generated, err := generateEnvs(toGenerate)
+	if err != nil {
+		return nil, err
+	}
+
+	prompted, err := promptEnv(toPrompt)
+	if err != nil {
+		return nil, err
+	}
+
+	return append(generated, prompted...), nil
+}
+
+func generateEnvs(keys []string) ([]string, error) {
+
+	for i, key := range keys {
+		resp, err := rand64String()
+		if err != nil {
+			return nil, fmt.Errorf("failed to generate secret for %s : %v", key, err)
+		}
+		keys[i] = key+"="+resp
+	}
+
+	return keys, nil
 }
 
 func promptEnv(list map[string]env) ([]string, error) {
@@ -147,30 +185,21 @@ func promptEnv(list map[string]env) ([]string, error) {
 	// field and prompt the questions as they appear in the app.json file as
 	// opposed to random order we do here.
 	for k, e := range list {
+		var resp string
 
-		if e.Generator == "secret" {
-			resp, err := rand64String()
-			if err != nil {
-				return nil, fmt.Errorf("failed to generate secret for %s : %v", k, err)
-			}
-			out = append(out, k+"="+resp)
-		} else {
-			var resp string
-
-			if err := survey.AskOne(&survey.Input{
-				Message: fmt.Sprintf("Value of %s environment variable (%s)",
-					color.CyanString(k),
-					color.HiBlackString(e.Description)),
-				Default: e.Value,
-			}, &resp,
-				survey.WithValidator(survey.Required),
-				surveyIconOpts,
-			); err != nil {
-				return nil, fmt.Errorf("failed to get a response for environment variable %s", k)
-			}
-			out = append(out, k+"="+resp)
+		if err := survey.AskOne(&survey.Input{
+			Message: fmt.Sprintf("Value of %s environment variable (%s)",
+				color.CyanString(k),
+				color.HiBlackString(e.Description)),
+			Default: e.Value,
+		}, &resp,
+			survey.WithValidator(survey.Required),
+			surveyIconOpts,
+		); err != nil {
+			return nil, fmt.Errorf("failed to get a response for environment variable %s", k)
 		}
-
+		out = append(out, k+"="+resp)
 	}
+
 	return out, nil
 }
