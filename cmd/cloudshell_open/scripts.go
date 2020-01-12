@@ -16,20 +16,30 @@ package main
 
 import (
 	"fmt"
+	"io"
 	"os"
 	"os/exec"
 
 	"github.com/fatih/color"
 )
 
+type myWriter struct {
+	out io.Writer
+	color color.Attribute
+}
+
+func (m myWriter) Write(p []byte) (int, error) {
+	return color.New(m.color).Fprintf(m.out, string(p))
+}
+
 func runScript(dir, command string, envs []string) error {
-	fmt.Println(infoPrefix + "Running command: " + color.BlueString(command))
+	fmt.Println(infoPrefix + " Running command: " + color.BlueString(command))
 
 	cmd := exec.Command("/bin/bash", "-c", "set -euo pipefail; set -x; " + command)
 	cmd.Env = envs
 	cmd.Dir = dir
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
+	cmd.Stdout = myWriter{os.Stdout, color.FgGreen}
+	cmd.Stderr = myWriter{os.Stderr, color.FgRed}
 	cmd.Stdin = os.Stdin
 	return cmd.Run()
 }
