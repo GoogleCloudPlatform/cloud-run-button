@@ -38,8 +38,8 @@ func runScript(dir, command string, envs []string) error {
 	cmd := exec.Command("/bin/bash", "-c", "set -euo pipefail; set -x; " + command)
 	cmd.Env = envs
 	cmd.Dir = dir
-	cmd.Stdout = myWriter{os.Stdout, color.FgGreen}
-	cmd.Stderr = myWriter{os.Stderr, color.FgRed}
+	cmd.Stdout = myWriter{os.Stdout, color.FgHiBlack}
+	cmd.Stderr = myWriter{os.Stderr, color.FgHiBlack}
 	cmd.Stdin = os.Stdin
 	return cmd.Run()
 }
