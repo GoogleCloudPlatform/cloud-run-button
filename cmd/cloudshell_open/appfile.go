@@ -39,14 +39,23 @@ type options struct {
 	AllowUnauthenticated *bool `json:"allow-unauthenticated"`
 }
 
+type hook struct {
+	Commands []string `json:"commands"`
+}
+
+type hooks struct {
+	PreCreate hook `json:"precreate"`
+	PostCreate hook `json:"postcreate"`
+}
+
 type appFile struct {
 	Name        string         `json:"name"`
 	Env         map[string]env `json:"env"`
 	Options     options        `json:"options"`
+	Hooks       hooks          `json:"hooks"`
 
 	// The following are unused variables that are still silently accepted
 	// for compatibility with Heroku app.json files.
-
 	IgnoredDescription string   `json:"description"`
 	IgnoredKeywords    []string `json:"keywords"`
 	IgnoredLogo        string   `json:"logo"`

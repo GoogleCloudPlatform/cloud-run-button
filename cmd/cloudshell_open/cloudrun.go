@@ -126,7 +126,7 @@ func promptDeploymentRegion(ctx context.Context, project string) (string, error)
 }
 
 
-func describe(project, name, region string) (service, error) {
+func describe(project, name, region string) (*service, error) {
 	var service service
 	var o bytes.Buffer
 	var e bytes.Buffer
@@ -140,14 +140,14 @@ func describe(project, name, region string) (service, error) {
 	cmd.Stdout = &o
 	cmd.Stderr = &e
 	if err := cmd.Run(); err != nil {
-		return service, fmt.Errorf("error describing service: %+v. output=\n%s", err, e.String())
+		return nil, fmt.Errorf("error describing service: %+v. output=\n%s", err, e.String())
 	}
 
 	if err := json.NewDecoder(&o).Decode(&service); err != nil {
-		return service, fmt.Errorf("error decoding gcloud --format=json output: %+v", err)
+		return nil, fmt.Errorf("error decoding gcloud --format=json output: %+v", err)
 	}
 
-	return service, nil
+	return &service, nil
 }
 
 func serviceURL(project, name, region string) (string, error) {

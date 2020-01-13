@@ -240,7 +240,7 @@ func run(opts runOpts) error {
 
 	existingEnvVars := make(map[string]struct{})
 	// todo(jamesward) actually determine if the service exists instead of assuming it doesn't if we get an error
-	_, err = describe(project, serviceName, region)
+	existingService, err := describe(project, serviceName, region)
 	if err == nil {
 		// service exists
 		existingEnvVars, err = envVars(project, serviceName, region)
@@ -308,6 +308,20 @@ func run(opts runOpts) error {
 		}
 	}
 
+	projectEnv := fmt.Sprintf("GOOGLE_CLOUD_PROJECT=%s", project)
+	regionEnv := fmt.Sprintf("GOOGLE_CLOUD_REGION=%s", region)
+	serviceEnv := fmt.Sprintf("K_SERVICE=%s", serviceName)
+	pathEnv := fmt.Sprintf("PATH=%s", os.Getenv("PATH"))
+
+	hookEnvs := append([]string{projectEnv, regionEnv, serviceEnv, pathEnv}, envs...)
+
+	if existingService == nil {
+		err = runScripts(appDir, appFile.Hooks.PreCreate.Commands, hookEnvs)
+		if err != nil {
+			return err
+		}
+	}
+
 	optionsFlags := optionsToFlags(appFile.Options)
 
 	serviceLabel := highlight(serviceName)
@@ -341,6 +355,13 @@ func run(opts runOpts) error {
 	end(err == nil)
 	if err != nil {
 		return err
+	}
+
+	if existingService == nil {
+		err = runScripts(appDir, appFile.Hooks.PostCreate.Commands, hookEnvs)
+		if err != nil {
+			return err
+		}
 	}
 
 	fmt.Printf("* This application is billed only when it's handling requests.\n")
