@@ -48,7 +48,7 @@ func runScripts(dir string, commands, envs []string) error {
 	for _, command := range commands {
 		err := runScript(dir, command, envs)
 		if err != nil {
-			return fmt.Errorf("failed to execute command[%d]: %v", command, err)
+			return fmt.Errorf("failed to execute command[%s]: %v", command, err)
 		}
 	}
 

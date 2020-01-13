@@ -308,11 +308,12 @@ func run(opts runOpts) error {
 		}
 	}
 
-	projectEnv := fmt.Sprintf("PROJECT_ID=%s", project)
+	projectEnv := fmt.Sprintf("GOOGLE_CLOUD_PROJECT=%s", project)
+	regionEnv := fmt.Sprintf("GOOGLE_CLOUD_REGION=%s", region)
 	serviceEnv := fmt.Sprintf("K_SERVICE=%s", serviceName)
-	regionEnv := fmt.Sprintf("REGION=%s", region)
+	pathEnv := fmt.Sprintf("PATH=%s", os.Getenv("PATH"))
 
-	hookEnvs := append([]string{projectEnv, serviceEnv, regionEnv}, envs...)
+	hookEnvs := append([]string{projectEnv, regionEnv, serviceEnv, pathEnv}, envs...)
 
 	if existingService == nil {
 		err = runScripts(appDir, appFile.Hooks.PreCreate.Commands, hookEnvs)
