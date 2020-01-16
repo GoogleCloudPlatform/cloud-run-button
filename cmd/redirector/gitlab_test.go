@@ -39,7 +39,7 @@ func TestExtractGitLabURL(t *testing.T) {
 			name: "repository tree with ref",
 			in:   "https://gitlab.com/gitlab-org/gitlab-runner/tree/master",
 			want: gitHubRepoRef{
-				user: "google",
+				user: "gitlab-org",
 				repo: "gitlab-runner",
 				ref:  "master",
 			},
