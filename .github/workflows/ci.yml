@@ -1,0 +1,34 @@
+on: [push, pull_request]
+
+jobs:
+  cloudshell_open:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@master
+    - uses: actions/setup-go@v1
+      with:
+        go-version: 1.13
+    - run: go mod download
+    - name: Set up git
+      run: |
+        git config --global user.email "you@example.com"
+        git config --global user.name "Your Name"
+    - name: Go tests
+      run: go test -v ./...
+    - name: Build docker image
+      run: docker build -t runbutton .
+  redirector:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@master
+    - uses: actions/setup-go@v1
+      with:
+        go-version: 1.13
+    - run: go mod download
+      working-directory: ./cmd/redirector
+    - name: Go tests
+      run: go test -v ./...
+      working-directory: ./cmd/redirector
+    - name: Build docker image
+      run: docker build -t redirector .
+      working-directory: ./cmd/redirector
