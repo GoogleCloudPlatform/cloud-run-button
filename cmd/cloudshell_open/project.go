@@ -44,7 +44,7 @@ func listProjects() ([]string, error) {
 	b = bytes.TrimSpace(b)
 	p := strings.Split(string(b), "\n")
 	if len(p) == 1 && p[0] == "" {
-		return []string{}, err
+		return nil, err
 	} else {
 		sort.Strings(p)
 		return p, err
