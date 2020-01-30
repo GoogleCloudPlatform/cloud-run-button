@@ -41,8 +41,11 @@ func listProjects() ([]string, error) {
 	if err != nil {
 		return nil, fmt.Errorf("failed to list projects: %+v, output:\n%s", err, string(b))
 	}
-	b = bytes.TrimSpace(b)
-	p := strings.Split(string(b), "\n")
+	s := string(bytes.TrimSpace(b))
+	if s == "" {
+		return nil, nil
+	}
+	p := strings.Split(s, "\n")
 	sort.Strings(p)
 	return p, err
 }
