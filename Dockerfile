@@ -8,5 +8,4 @@ RUN CGO_ENABLED=0 GOOS=linux go build -a -ldflags '-extldflags "-static"' \
         -o /bin/a.out ./cmd/cloudshell_open
 
 FROM gcr.io/cloudshell-images/cloudshell:latest
-RUN gcloud components update
 COPY --from=build /bin/a.out /bin/cloudshell_open
