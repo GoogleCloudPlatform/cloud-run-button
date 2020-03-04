@@ -7,4 +7,6 @@ steps:
 - name: 'gcr.io/cloudshell-images/custom-image-validation'
   args: ['image_test.py', '--image', 'gcr.io/$PROJECT_ID/button']
 images: ['gcr.io/$PROJECT_ID/button']
-timeout: '1200s'
+timeout: '3600s'
+options:
+  machineType: 'N1_HIGHCPU_8'
