@@ -250,43 +250,39 @@ func run(opts runOpts) error {
 		return err
 	}
 
-	exists, err := dockerFileExists(appDir)
-	jibMaven := false
-	if err != nil {
-		return err
-	}
-	if exists {
+	projectEnv := fmt.Sprintf("GOOGLE_CLOUD_PROJECT=%s", project)
+	regionEnv := fmt.Sprintf("GOOGLE_CLOUD_REGION=%s", region)
+	serviceEnv := fmt.Sprintf("K_SERVICE=%s", serviceName)
+	pathEnv := fmt.Sprintf("PATH=%s", os.Getenv("PATH"))
+
+	hookEnvs := append([]string{projectEnv, regionEnv, serviceEnv, pathEnv}, envs...)
+
+	pushImage := true
+
+	if appFile.Hooks.Build.Commands != nil {
+		err = runScripts(appDir, appFile.Hooks.Build.Commands, hookEnvs)
+	} else if dockerFileExists, _ := dockerFileExists(appDir); dockerFileExists {
 		fmt.Println(infoPrefix + " Attempting to build this application with its Dockerfile...")
 		fmt.Println(infoPrefix + " FYI, running the following command:")
 		cmdColor.Printf("\tdocker build -t %s %s\n", parameter(image), parameter("."))
+		err = dockerBuild(appDir, image)
+	} else if jibMaven, _ := jibMavenConfigured(appDir); jibMaven {
+		pushImage = false
+		fmt.Println(infoPrefix + " Attempting to build this application with Jib Maven plugin...")
+		fmt.Println(infoPrefix + " FYI, running the following command:")
+		cmdColor.Printf("\tmvn package jib:build -Dimage=%s\n", parameter(image))
+		err = jibMavenBuild(appDir, image)
 	} else {
-		jibMaven, err = jibMavenConfigured(appDir)
-		if err != nil {
-			return fmt.Errorf("failed to check if Jib is configured: %s", err)
-		}
-		if jibMaven {
-			fmt.Println(infoPrefix + " Attempting to build this application with Jib Maven plugin...")
-			fmt.Println(infoPrefix + " FYI, running the following command:")
-			cmdColor.Printf("\tmvn package jib:build -Dimage=%s\n", parameter(image))
-		} else {
-			fmt.Println(infoPrefix + " Attempting to build this application with Cloud Native Buildpacks (buildpacks.io)...")
-			fmt.Println(infoPrefix + " FYI, running the following command:")
-			cmdColor.Printf("\tpack build %s --path %s --builder heroku/buildpacks\n", parameter(image), parameter(appDir))
-		}
+		fmt.Println(infoPrefix + " Attempting to build this application with Cloud Native Buildpacks (buildpacks.io)...")
+		fmt.Println(infoPrefix + " FYI, running the following command:")
+		cmdColor.Printf("\tpack build %s --path %s --builder heroku/buildpacks\n", parameter(image), parameter(appDir))
+		err = packBuild(appDir, image)
 	}
 
 	end = logProgress(fmt.Sprintf("Building container image %s", highlight(image)),
 		fmt.Sprintf("Built container image %s", highlight(image)),
 		"Failed to build container image.")
-	pushImage := true
-	if exists {
-		err = dockerBuild(appDir, image)
-	} else if jibMaven {
-		pushImage = false
-		err = jibMavenBuild(appDir, image)
-	} else {
-		err = packBuild(appDir, image)
-	}
+
 	end(err == nil)
 	if err != nil {
 		return fmt.Errorf("attempted to build and failed: %s", err)
@@ -304,13 +300,6 @@ func run(opts runOpts) error {
 			return fmt.Errorf("failed to push image to %s: %+v", image, err)
 		}
 	}
-
-	projectEnv := fmt.Sprintf("GOOGLE_CLOUD_PROJECT=%s", project)
-	regionEnv := fmt.Sprintf("GOOGLE_CLOUD_REGION=%s", region)
-	serviceEnv := fmt.Sprintf("K_SERVICE=%s", serviceName)
-	pathEnv := fmt.Sprintf("PATH=%s", os.Getenv("PATH"))
-
-	hookEnvs := append([]string{projectEnv, regionEnv, serviceEnv, pathEnv}, envs...)
 
 	if existingService == nil {
 		err = runScripts(appDir, appFile.Hooks.PreCreate.Commands, hookEnvs)
