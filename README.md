@@ -23,7 +23,7 @@ Cloud](https://deploy.cloud.run/button.svg)](https://deploy.cloud.run/?git_repo=
     [![Run on Google Cloud](https://deploy.cloud.run/button.svg)](https://deploy.cloud.run)
     ```
 
-1. If the repo contains a `Dockerfile`, it will be built using the `docker build` command.  If the repo uses Maven for the build and it contains the [Jib plugin](https://github.com/GoogleContainerTools/jib/tree/master/jib-maven-plugin), then the container image will be built with Jib ([Jib Spring Boot Sample](https://github.com/GoogleContainerTools/jib/tree/master/examples/spring-boot)).  Otherwise, [CNCF Buildpacks](https://buildpacks.io/) (i.e. the `pack build` command) will attempt to build the repo ([buildpack samples][buildpack-samples]).
+1. If the repo contains a `Dockerfile`, it will be built using the `docker build` command.  If the repo uses Maven for the build and it contains the [Jib plugin](https://github.com/GoogleContainerTools/jib/tree/master/jib-maven-plugin), then the container image will be built with Jib ([Jib Spring Boot Sample](https://github.com/GoogleContainerTools/jib/tree/master/examples/spring-boot)).  Otherwise, [CNCF Buildpacks](https://buildpacks.io/) (i.e. the `pack build` command) will attempt to build the repo ([buildpack samples][buildpack-samples]).  Alternatively the build command can be defined in the `app.json` - see below.
 
 [buildpack-samples]: https://github.com/GoogleCloudPlatform/buildpack-samples
 
@@ -63,6 +63,11 @@ For example:
         "allow-unauthenticated": false
     },
     "hooks": {
+        "build": {
+            "commands": [
+                "./my-custom-build"
+            ]
+        },
         "precreate": {
             "commands": [
                 "echo 'test'"
@@ -92,8 +97,12 @@ Reference:
 - `options`: _(optional)_ Options when deploying the service
   - `allow-unauthenticated`: _(optional, default: `true`)_ allow unauthenticated requests
 - `hooks`: _(optional)_ Run commands in separate bash shells with the environment variables configured for the
- application and environment variables for `GOOGLE_CLOUD_PROJECT`, `GOOGLE_CLOUD_REGION`, and `K_SERVICE`. Command
- outputs are shown as they are executed.
+ application and environment variables `GOOGLE_CLOUD_PROJECT` (Google Cloud project), `GOOGLE_CLOUD_REGION`
+ (selected Google Cloud Region), `K_SERVICE` (Cloud Run service name), `IMAGE_URL` (container image URL), `APP_DIR`
+ (application directory). Command outputs are shown as they are executed.
+  - `build`: _(optional)_ Runs the specified commands to build the container image. This replaces the default build
+  methods (`docker build`, Maven Jib, and Buildpacks).
+    - `commands`: _(array of strings)_ The list of commands to run
   - `precreate`: _(optional)_ Runs the specified commands before the service has been created
     - `commands`: _(array of strings)_ The list of commands to run
   - `postcreate`: _(optional)_ Runs the specified commands after the service has been created

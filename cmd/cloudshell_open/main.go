@@ -253,9 +253,11 @@ func run(opts runOpts) error {
 	projectEnv := fmt.Sprintf("GOOGLE_CLOUD_PROJECT=%s", project)
 	regionEnv := fmt.Sprintf("GOOGLE_CLOUD_REGION=%s", region)
 	serviceEnv := fmt.Sprintf("K_SERVICE=%s", serviceName)
+	imageEnv := fmt.Sprintf("IMAGE_URL=%s", image)
+	appDirEnv := fmt.Sprintf("APP_DIR=%s", appDir)
 	pathEnv := fmt.Sprintf("PATH=%s", os.Getenv("PATH"))
 
-	hookEnvs := append([]string{projectEnv, regionEnv, serviceEnv, pathEnv}, envs...)
+	hookEnvs := append([]string{projectEnv, regionEnv, serviceEnv, imageEnv, appDirEnv, pathEnv}, envs...)
 
 	pushImage := true
 
