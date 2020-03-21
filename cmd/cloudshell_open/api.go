@@ -15,13 +15,19 @@
 package main
 
 import (
+	"context"
 	"fmt"
-	"os/exec"
-	"strings"
+
+	"google.golang.org/api/serviceusage/v1"
 )
 
 func enableAPIs(project string, apis []string) error {
-	enabled, err := enabledAPIs(project)
+	client, err := serviceusage.NewService(context.TODO())
+	if err != nil {
+		return fmt.Errorf("failed to create resource manager client: %w", err)
+	}
+
+	enabled, err := enabledAPIs(client, project)
 	if err != nil {
 		return err
 	}
@@ -43,19 +49,35 @@ func enableAPIs(project string, apis []string) error {
 		return nil
 	}
 
-	cmd := exec.Command("gcloud", append([]string{"services", "enable", "--project", project, "-q"}, needAPIs...)...)
-	b, err := cmd.CombinedOutput()
+	op, err := client.Services.BatchEnable("projects/"+project, &serviceusage.BatchEnableServicesRequest{
+		ServiceIds: needAPIs,
+	}).Do()
 	if err != nil {
-		return fmt.Errorf("failed to enable apis: %s", string(b))
+		return fmt.Errorf("failed to issue enable APIs request: %w", err)
+	}
+
+	for !op.Done {
+		op, err = client.Operations.Get(op.Name).Context(context.TODO()).Do()
+		if err != nil {
+			return fmt.Errorf("failed to query operation status (%s): %w", op.Name, err)
+		}
+		if op.Error != nil {
+			return fmt.Errorf("enabling APIs failed (operation=%s, code=%d): %s", op.Name, op.Error.Code, op.Error.Message)
+		}
 	}
 	return nil
 }
 
-func enabledAPIs(project string) ([]string, error) {
-	cmd := exec.Command("gcloud", "services", "list", "--project", project, "--format", "value(config.name)")
-	b, err := cmd.CombinedOutput()
-	if err != nil {
-		return nil, fmt.Errorf("failed to list enabled services on project %q. output: %s", project, string(b))
+func enabledAPIs(client *serviceusage.Service, project string) ([]string, error) {
+	var out []string
+	if err := client.Services.List("projects/"+project).PageSize(200).Pages(context.TODO(),
+		func(resp *serviceusage.ListServicesResponse) error {
+			for _, p := range resp.Services {
+				out = append(out, p.Config.Name)
+			}
+			return nil
+		}); err != nil {
+		return nil, fmt.Errorf("failed to list APIs on the project: %w", err)
 	}
-	return strings.Split(strings.TrimSpace(string(b)), "\n"), nil
+	return out, nil
 }

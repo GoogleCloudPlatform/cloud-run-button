@@ -15,9 +15,7 @@
 package main
 
 import (
-	"bytes"
 	"context"
-	"encoding/json"
 	"fmt"
 	"os/exec"
 	"regexp"
@@ -26,6 +24,7 @@ import (
 	"unicode"
 
 	"github.com/AlecAivazis/survey/v2"
+	"google.golang.org/api/option"
 	runapi "google.golang.org/api/run/v1alpha1"
 )
 
@@ -125,28 +124,18 @@ func promptDeploymentRegion(ctx context.Context, project string) (string, error)
 	return choice, nil
 }
 
-func describe(project, name, region string) (*service, error) {
-	var service service
-	var o bytes.Buffer
-	var e bytes.Buffer
-
-	cmd := exec.Command("gcloud", "run", "services", "describe", name,
-		"--project", project,
-		"--platform", "managed",
-		"--region", region,
-		"--format=json")
-
-	cmd.Stdout = &o
-	cmd.Stderr = &e
-	if err := cmd.Run(); err != nil {
-		return nil, fmt.Errorf("error describing service: %+v. output=\n%s", err, e.String())
+func describe(project, name, region string) (*runapi.Service, error) {
+	regionalEndpoint := fmt.Sprintf("https://%s-run.googleapis.com/", region)
+	api, err := runapi.NewService(context.TODO(), option.WithEndpoint(regionalEndpoint))
+	if err != nil {
+		return nil, fmt.Errorf("failed to initialize Run API client: %+v", err)
 	}
 
-	if err := json.NewDecoder(&o).Decode(&service); err != nil {
-		return nil, fmt.Errorf("error decoding gcloud --format=json output: %+v", err)
+	service, err := api.Namespaces.Services.Get(fmt.Sprintf("namespaces/%s/services/%s", project, name)).Do()
+	if err != nil {
+		return nil, fmt.Errorf("failed to query Cloud Run service: %w", err)
 	}
-
-	return &service, nil
+	return service, nil
 }
 
 func serviceURL(project, name, region string) (string, error) {
@@ -169,7 +158,7 @@ func envVars(project, name, region string) (map[string]struct{}, error) {
 	existing := make(map[string]struct{})
 
 	for _, container := range service.Spec.Template.Spec.Containers {
-		for _, envVar := range container.EnvVars {
+		for _, envVar := range container.Env {
 			existing[envVar.Name] = struct{}{}
 		}
 	}
