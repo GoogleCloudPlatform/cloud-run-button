@@ -15,15 +15,14 @@
 package main
 
 import (
-	"bytes"
+	"context"
 	"errors"
 	"fmt"
-	"os/exec"
 	"sort"
-	"strings"
 
 	"github.com/AlecAivazis/survey/v2"
 	"github.com/fatih/color"
+	"google.golang.org/api/cloudresourcemanager/v1"
 )
 
 var (
@@ -36,18 +35,21 @@ var (
 )
 
 func listProjects() ([]string, error) {
-	cmd := exec.Command("gcloud", "projects", "list", "--format", "value(projectId)")
-	b, err := cmd.CombinedOutput()
+	client, err := cloudresourcemanager.NewService(context.TODO())
 	if err != nil {
-		return nil, fmt.Errorf("failed to list projects: %+v, output:\n%s", err, string(b))
+		return nil, fmt.Errorf("failed to initialize cloudresourcemanager client: %w", err)
 	}
-	s := string(bytes.TrimSpace(b))
-	if s == "" {
-		return nil, nil
+	var out []string
+	if err := client.Projects.List().PageSize(1000).Pages(context.TODO(), func(resp *cloudresourcemanager.ListProjectsResponse) error {
+		for _, p := range resp.Projects {
+			out = append(out, p.ProjectId)
+		}
+		return nil
+	}); err != nil {
+		return nil, fmt.Errorf("failed to list GCP projects: %w", err)
 	}
-	p := strings.Split(s, "\n")
-	sort.Strings(p)
-	return p, err
+	sort.Strings(out)
+	return out, nil
 }
 
 func promptProject(projects []string) (string, error) {

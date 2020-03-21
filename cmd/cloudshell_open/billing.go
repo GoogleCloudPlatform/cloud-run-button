@@ -15,28 +15,22 @@
 package main
 
 import (
-	"bytes"
-	"encoding/json"
+	"context"
 	"fmt"
-	"os/exec"
+
+	"google.golang.org/api/cloudbilling/v1"
 )
 
 // checkBillingEnabled checks if there's a billing account associated to the
-// GCP project ID
+// GCP project ID.
 func checkBillingEnabled(projectID string) (bool, error) {
-	var o bytes.Buffer
-	var e bytes.Buffer
-	cmd := exec.Command("gcloud", "beta", "billing", "projects", "describe", "-q", "--format=json", projectID)
-	cmd.Stdout = &o
-	cmd.Stderr = &e
-	if err := cmd.Run(); err != nil {
-		return false, fmt.Errorf("error determining if billing account is linked: %+v. output=\n%s", err, e.String())
+	client, err := cloudbilling.NewService(context.TODO())
+	if err != nil {
+		return false, fmt.Errorf("failed to initialize cloud billing client: %w", err)
 	}
-	v := struct {
-		BillingEnabled bool `json:"billingEnabled"`
-	}{}
-	if err := json.NewDecoder(&o).Decode(&v); err != nil {
-		return false, fmt.Errorf("error decoding gcloud --format=json output: %+v", err)
+	bo, err := client.Projects.GetBillingInfo("projects/" + projectID).Context(context.TODO()).Do()
+	if err != nil {
+		return false, fmt.Errorf("failed to query project billing info: %w", err)
 	}
-	return v.BillingEnabled, nil
+	return bo.BillingEnabled, nil
 }
