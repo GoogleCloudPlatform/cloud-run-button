@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"math/rand"
 	"strings"
@@ -10,14 +11,7 @@ import (
 	runapi "google.golang.org/api/run/v1"
 )
 
-func optionsToFlags(options options) []string {
-	authSetting := "--allow-unauthenticated"
-	if options.AllowUnauthenticated != nil && *options.AllowUnauthenticated == false {
-		authSetting = "--no-allow-unauthenticated"
-	}
-	return []string{authSetting}
-}
-
+// parseEnv parses K=V pairs into a map.
 func parseEnv(envs []string) map[string]string {
 	out := make(map[string]string)
 	for _, v := range envs {
@@ -27,6 +21,8 @@ func parseEnv(envs []string) map[string]string {
 	return out
 }
 
+// deploy reimplements the "gcloud run deploy" command, including setting IAM policy and
+// waiting for Service to be Ready.
 func deploy(project, name, image, region string, envs []string, options options) (string, error) {
 	envVars := parseEnv(envs)
 
@@ -58,11 +54,15 @@ func deploy(project, name, image, region string, envs []string, options options)
 		}
 	}
 
+	if options.AllowUnauthenticated == nil || *options.AllowUnauthenticated {
+		if err := allowUnauthenticated(project, name, region); err != nil {
+			return "", fmt.Errorf("failed to allow unauthenticated requests on the service: %w", err)
+		}
+	}
+
 	if err := waitReady(project, name, region); err != nil {
 		return "", err
 	}
-
-	// TODO use 'options' to set --allow-unauthenticated mode
 
 	out, err := getService(project, name, region)
 	if err != nil {
@@ -71,6 +71,7 @@ func deploy(project, name, image, region string, envs []string, options options)
 	return out.Status.Url, nil
 }
 
+// newService initializes a new Knative Service object with given properties.
 func newService(name, project, image string, envs map[string]string) *runapi.Service {
 	var envVars []*runapi.EnvVar
 	for k, v := range envs {
@@ -110,6 +111,7 @@ func newService(name, project, image string, envs map[string]string) *runapi.Ser
 	return svc
 }
 
+// applyMeta applies optional annotations to the specified Metadata.Annotation field.
 func applyMeta(meta map[string]string, userImage string) {
 	meta["client.knative.dev/user-image"] = userImage
 	meta["run.googleapis.com/client-name"] = "cloud-run-button"
@@ -127,6 +129,7 @@ func generateRevisionName(name string, objectGeneration int64) string {
 	return out
 }
 
+// patchService modifies an existing Service with requested changes.
 func patchService(svc *runapi.Service, envs map[string]string, image string) *runapi.Service {
 	// merge env vars
 	svc.Spec.Template.Spec.Containers[0].Env = mergeEnvs(svc.Spec.Template.Spec.Containers[0].Env, envs)
@@ -161,7 +164,8 @@ func mergeEnvs(existing []*runapi.EnvVar, env map[string]string) []*runapi.EnvVa
 
 // waitReady waits until the specified service reaches Ready status
 func waitReady(project, name, region string) error {
-	deadline := time.Now().Add(time.Second * 30)
+	wait := time.Second * 30
+	deadline := time.Now().Add(wait)
 	for time.Now().Before(deadline) {
 		svc, err := getService(project, name, region)
 		if err != nil {
@@ -178,5 +182,36 @@ func waitReady(project, name, region string) error {
 			}
 		}
 	}
-	return fmt.Errorf("the service did not become ready in 30s, check Cloud Console for logs")
+	return fmt.Errorf("the service did not become ready in %s, check Cloud Console for logs to see why it failed", wait)
+}
+
+// allowUnauthenticated sets IAM policy on the specified Cloud Run service to give allUsers subject
+// roles/run.invoker role.
+func allowUnauthenticated(project, name, region string) error {
+	client, err := runapi.NewService(context.TODO())
+	if err != nil {
+		return fmt.Errorf("failed to initialize Run API client: %w", err)
+	}
+
+	res := fmt.Sprintf("projects/%s/locations/%s/services/%s", project, region, name)
+	policy, err := client.Projects.Locations.Services.GetIamPolicy(res).Do()
+	if err != nil {
+		return fmt.Errorf("failed to get IAM policy for Cloud Run Service: %w", err)
+	}
+
+	policy.Bindings = append(policy.Bindings, &runapi.Binding{
+		Members: []string{"allUsers"},
+		Role:    "roles/run.invoker",
+	})
+
+	_, err = client.Projects.Locations.Services.SetIamPolicy(res, &runapi.SetIamPolicyRequest{Policy: policy}).Do()
+	if err != nil {
+		var extra string
+		e, ok := err.(*googleapi.Error)
+		if ok {
+			extra = fmt.Sprintf("code=%d, message=%s -- %s", e.Code, e.Message, e.Body)
+		}
+		return fmt.Errorf("failed to set IAM policy for Cloud Run Service: %w %s", err, extra)
+	}
+	return nil
 }

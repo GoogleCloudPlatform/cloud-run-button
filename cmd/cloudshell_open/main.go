@@ -366,10 +366,18 @@ func run(opts runOpts) error {
 	color.New(color.Underline, color.Bold).Printf("https://console.cloud.google.com/run?project=%s\n", project)
 	fmt.Printf("* Learn more about Cloud Run:\n\t")
 	color.New(color.Underline, color.Bold).Println("https://cloud.google.com/run/docs")
-	fmt.Printf(successPrefix+" %s %s\n",
+	fmt.Printf(successPrefix+" %s%s\n",
 		color.New(color.Bold).Sprint("Your application is now live here:\n\t"),
 		color.New(color.Bold, color.FgGreen, color.Underline).Sprint(url))
 	return nil
+}
+
+func optionsToFlags(options options) []string {
+	authSetting := "--allow-unauthenticated"
+	if options.AllowUnauthenticated != nil && *options.AllowUnauthenticated == false {
+		authSetting = "--no-allow-unauthenticated"
+	}
+	return []string{authSetting}
 }
 
 func waitForBilling(projectID string, prompt func(string) error) error {
