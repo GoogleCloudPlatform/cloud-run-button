@@ -237,7 +237,7 @@ func run(opts runOpts) error {
 
 	existingEnvVars := make(map[string]struct{})
 	// todo(jamesward) actually determine if the service exists instead of assuming it doesn't if we get an error
-	existingService, err := describe(project, serviceName, region)
+	existingService, err := getService(project, serviceName, region)
 	if err == nil {
 		// service exists
 		existingEnvVars, err = envVars(project, serviceName, region)
