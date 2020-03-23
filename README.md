@@ -62,6 +62,9 @@ For example:
     "options": {
         "allow-unauthenticated": false
     },
+    "build": {
+        "skip": false
+    },
     "hooks": {
         "build": {
             "commands": [
@@ -96,12 +99,15 @@ Reference:
   - `generator`, _(optional)_ use a generator for the value, currently only support `secret`
 - `options`: _(optional)_ Options when deploying the service
   - `allow-unauthenticated`: _(optional, default: `true`)_ allow unauthenticated requests
+- `build`: _(optional)_ Build configuration
+  - `skip`: _(optional, default: `false`)_ skips the built-in build methods (`docker build`, `Maven Jib`, and `buildpacks`)
 - `hooks`: _(optional)_ Run commands in separate bash shells with the environment variables configured for the
  application and environment variables `GOOGLE_CLOUD_PROJECT` (Google Cloud project), `GOOGLE_CLOUD_REGION`
  (selected Google Cloud Region), `K_SERVICE` (Cloud Run service name), `IMAGE_URL` (container image URL), `APP_DIR`
  (application directory). Command outputs are shown as they are executed.
-  - `build`: _(optional)_ Runs the specified commands to build the container image. This replaces the default build
-  methods (`docker build`, Maven Jib, and Buildpacks).
+  - `prebuild`: _(optional)_ Runs the specified commands before running the built-in build methods
+    - `commands`: _(array of strings)_ The list of commands to run
+  - `postbuild`: _(optional)_ Runs the specified commands after running the built-in build methods
     - `commands`: _(array of strings)_ The list of commands to run
   - `precreate`: _(optional)_ Runs the specified commands before the service has been created
     - `commands`: _(array of strings)_ The list of commands to run

@@ -261,33 +261,41 @@ func run(opts runOpts) error {
 
 	pushImage := true
 
-	if appFile.Hooks.Build.Commands != nil {
-		err = runScripts(appDir, appFile.Hooks.Build.Commands, hookEnvs)
-	} else if dockerFileExists, _ := dockerFileExists(appDir); dockerFileExists {
-		fmt.Println(infoPrefix + " Attempting to build this application with its Dockerfile...")
-		fmt.Println(infoPrefix + " FYI, running the following command:")
-		cmdColor.Printf("\tdocker build -t %s %s\n", parameter(image), parameter("."))
-		err = dockerBuild(appDir, image)
-	} else if jibMaven, _ := jibMavenConfigured(appDir); jibMaven {
-		pushImage = false
-		fmt.Println(infoPrefix + " Attempting to build this application with Jib Maven plugin...")
-		fmt.Println(infoPrefix + " FYI, running the following command:")
-		cmdColor.Printf("\tmvn package jib:build -Dimage=%s\n", parameter(image))
-		err = jibMavenBuild(appDir, image)
-	} else {
-		fmt.Println(infoPrefix + " Attempting to build this application with Cloud Native Buildpacks (buildpacks.io)...")
-		fmt.Println(infoPrefix + " FYI, running the following command:")
-		cmdColor.Printf("\tpack build %s --path %s --builder heroku/buildpacks\n", parameter(image), parameter(appDir))
-		err = packBuild(appDir, image)
+	if appFile.Hooks.PreBuild.Commands != nil {
+		err = runScripts(appDir, appFile.Hooks.PreBuild.Commands, hookEnvs)
 	}
 
-	end = logProgress(fmt.Sprintf("Building container image %s", highlight(image)),
-		fmt.Sprintf("Built container image %s", highlight(image)),
-		"Failed to build container image.")
+	if appFile.Build.Skip == nil || *appFile.Build.Skip == false {
+		if dockerFileExists, _ := dockerFileExists(appDir); dockerFileExists {
+			fmt.Println(infoPrefix + " Attempting to build this application with its Dockerfile...")
+			fmt.Println(infoPrefix + " FYI, running the following command:")
+			cmdColor.Printf("\tdocker build -t %s %s\n", parameter(image), parameter("."))
+			err = dockerBuild(appDir, image)
+		} else if jibMaven, _ := jibMavenConfigured(appDir); jibMaven {
+			pushImage = false
+			fmt.Println(infoPrefix + " Attempting to build this application with Jib Maven plugin...")
+			fmt.Println(infoPrefix + " FYI, running the following command:")
+			cmdColor.Printf("\tmvn package jib:build -Dimage=%s\n", parameter(image))
+			err = jibMavenBuild(appDir, image)
+		} else {
+			fmt.Println(infoPrefix + " Attempting to build this application with Cloud Native Buildpacks (buildpacks.io)...")
+			fmt.Println(infoPrefix + " FYI, running the following command:")
+			cmdColor.Printf("\tpack build %s --path %s --builder heroku/buildpacks\n", parameter(image), parameter(appDir))
+			err = packBuild(appDir, image)
+		}
+
+		end = logProgress(fmt.Sprintf("Building container image %s", highlight(image)),
+			fmt.Sprintf("Built container image %s", highlight(image)),
+			"Failed to build container image.")
+	}
 
 	end(err == nil)
 	if err != nil {
 		return fmt.Errorf("attempted to build and failed: %s", err)
+	}
+
+	if appFile.Hooks.PostBuild.Commands != nil {
+		err = runScripts(appDir, appFile.Hooks.PostBuild.Commands, hookEnvs)
 	}
 
 	if pushImage {
