@@ -92,7 +92,7 @@ func Test_parseAppFile(t *testing.T) {
 		{"bad object at root", `1`, nil, true},
 		{"unknown field", `{"foo":"bar"}`, nil, true},
 		{"allow-unauthenticated true", `{"options": {"allow-unauthenticated": true}}`,
-			&appFile{Options:options{AllowUnauthenticated:&tru}}, false},
+			&appFile{Options: options{AllowUnauthenticated: &tru}}, false},
 		{"wrong env type", `{"env": "foo"}`, nil, true},
 		{"wrong env value type", `{"env": {"foo":"bar"}}`, nil, true},
 		{"env not array", `{"env": []}`, nil, true},
@@ -105,17 +105,17 @@ func Test_parseAppFile(t *testing.T) {
 		}}`, nil, true},
 		{"required is true by default", `{
 			"env": {"KEY":{}}}`, &appFile{Env: map[string]env{
-			"KEY": env{Required: &tru}}}, false},
+			"KEY": {Required: &tru}}}, false},
 		{"required can be set to false", `{
 			"env": {"KEY":{"required":false}}}`, &appFile{
-			Env: map[string]env{"KEY": env{Required: &fals}}}, false},
+			Env: map[string]env{"KEY": {Required: &fals}}}, false},
 		{"required has to be bool", `{
 			"env": {"KEY":{"required": "false"}}}`, nil, true},
 		{"value has to be string", `{
 			"env": {"KEY":{"value": 100}}}`, nil, true},
 		{"generator secret", `{
 			"env": {"KEY":{"generator": "secret"}}}`, &appFile{Env: map[string]env{
-			"KEY": env{Required: &tru, Generator: "secret"}}}, false},
+			"KEY": {Required: &tru, Generator: "secret"}}}, false},
 		{"generator secret and value", `{
 			"env": {"KEY":{"generator": "secret", "value": "asdf"}}}`, nil, true},
 		{"parses ok", `{
@@ -130,14 +130,14 @@ func Test_parseAppFile(t *testing.T) {
 				}
 			}}`,
 			&appFile{
-				Name:        "foo",
+				Name:    "foo",
 				Options: options{},
 				Env: map[string]env{
-					"KEY_1": env{
+					"KEY_1": {
 						Required:    &fals,
 						Description: "key 1 is cool",
 					},
-					"KEY_2": env{
+					"KEY_2": {
 						Value:    "k2",
 						Required: &tru,
 					},
@@ -150,7 +150,7 @@ func Test_parseAppFile(t *testing.T) {
 						"date"
 					]
 				}
-			}}`, &appFile{Hooks: hooks{PreCreate:hook{Commands:[]string{"echo pre", "date"}}}}, false},
+			}}`, &appFile{Hooks: hooks{PreCreate: hook{Commands: []string{"echo pre", "date"}}}}, false},
 		{"postcreate", `{
 			"hooks": {
 				"postcreate": {
@@ -158,7 +158,7 @@ func Test_parseAppFile(t *testing.T) {
 						"echo post"
 					]
 				}
-			}}`, &appFile{Hooks: hooks{PostCreate:hook{Commands:[]string{"echo post"}}}}, false},
+			}}`, &appFile{Hooks: hooks{PostCreate: hook{Commands: []string{"echo post"}}}}, false},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -227,7 +227,7 @@ func TestGetAppFile(t *testing.T) {
 		t.Fatal(err)
 	}
 	expected := appFile{Env: map[string]env{
-		"KEY": env{Value: "bar", Required: &tru},
+		"KEY": {Value: "bar", Required: &tru},
 	}}
 	if !reflect.DeepEqual(v, expected) {
 		t.Fatalf("wrong parsed value: got=%#v, expected=%#v", v, expected)

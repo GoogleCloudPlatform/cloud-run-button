@@ -13,8 +13,12 @@ jobs:
       run: |
         git config --global user.email "you@example.com"
         git config --global user.name "Your Name"
+    - name: Validate formatting with go fmt
+      run: diff -u <(echo -n) <(gofmt -d -s .)
+      working-directory: ./cmd/cloudshell_open
     - name: Go tests
       run: go test -v ./...
+      working-directory: ./cmd/cloudshell_open
     - name: Build docker image
       run: docker build -t runbutton .
   redirector:
@@ -25,6 +29,9 @@ jobs:
       with:
         go-version: 1.13
     - run: go mod download
+      working-directory: ./cmd/redirector
+    - name: Validate formatting with go fmt
+      run: diff -u <(echo -n) <(gofmt -d -s .)
       working-directory: ./cmd/redirector
     - name: Go tests
       run: go test -v ./...

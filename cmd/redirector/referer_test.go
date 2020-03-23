@@ -82,13 +82,13 @@ func Test_prepURL(t *testing.T) {
 			out := prepURL(tt.args.r, tt.args.overrides)
 			got, _ := url.Parse(out)
 			want, _ := url.Parse(tt.want)
-			if !reflect.DeepEqual(got.Query().Encode(),want.Query().Encode()) {
+			if !reflect.DeepEqual(got.Query().Encode(), want.Query().Encode()) {
 				t.Errorf("query parameter mismatch prepURL()=\n'%s';\nwant=\n'%s'", got.Query(), want.Query())
 			}
 			// clear query and compare the rest
 			got.RawQuery = ""
 			want.RawQuery = ""
-			if !reflect.DeepEqual(got,want) {
+			if !reflect.DeepEqual(got, want) {
 				t.Errorf("mismatch in rest of url (non-query params) prepURL()=\n'%s';\nwant=\n'%s'", got, want)
 			}
 		})
