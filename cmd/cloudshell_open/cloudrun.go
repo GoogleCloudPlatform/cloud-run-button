@@ -40,7 +40,7 @@ type service struct {
 			Spec struct {
 				Containers []struct {
 					EnvVars []struct {
-						Name string `json:"name"`
+						Name  string `json:"name"`
 						Value string `json:"value"`
 					} `json:"env"`
 				} `json:"containers"`
@@ -124,7 +124,6 @@ func promptDeploymentRegion(ctx context.Context, project string) (string, error)
 	}
 	return choice, nil
 }
-
 
 func describe(project, name, region string) (*service, error) {
 	var service service

@@ -24,7 +24,7 @@ import (
 )
 
 type myWriter struct {
-	out io.Writer
+	out   io.Writer
 	color color.Attribute
 }
 
@@ -35,7 +35,7 @@ func (m myWriter) Write(p []byte) (int, error) {
 func runScript(dir, command string, envs []string) error {
 	fmt.Println(infoPrefix + " Running command: " + color.BlueString(command))
 
-	cmd := exec.Command("/bin/bash", "-c", "set -euo pipefail; set -x; " + command)
+	cmd := exec.Command("/bin/bash", "-c", "set -euo pipefail; set -x; "+command)
 	cmd.Env = envs
 	cmd.Dir = dir
 	cmd.Stdout = myWriter{os.Stdout, color.FgHiBlack}

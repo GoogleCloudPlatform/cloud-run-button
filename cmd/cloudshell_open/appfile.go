@@ -15,13 +15,13 @@
 package main
 
 import (
+	"crypto/rand"
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"io"
 	"os"
 	"path/filepath"
-	"crypto/rand"
 
 	"github.com/fatih/color"
 
@@ -44,15 +44,15 @@ type hook struct {
 }
 
 type hooks struct {
-	PreCreate hook `json:"precreate"`
+	PreCreate  hook `json:"precreate"`
 	PostCreate hook `json:"postcreate"`
 }
 
 type appFile struct {
-	Name        string         `json:"name"`
-	Env         map[string]env `json:"env"`
-	Options     options        `json:"options"`
-	Hooks       hooks          `json:"hooks"`
+	Name    string         `json:"name"`
+	Env     map[string]env `json:"env"`
+	Options options        `json:"options"`
+	Hooks   hooks          `json:"hooks"`
 
 	// The following are unused variables that are still silently accepted
 	// for compatibility with Heroku app.json files.
@@ -179,7 +179,7 @@ func generateEnvs(keys []string) ([]string, error) {
 		if err != nil {
 			return nil, fmt.Errorf("failed to generate secret for %s : %v", key, err)
 		}
-		keys[i] = key+"="+resp
+		keys[i] = key + "=" + resp
 	}
 
 	return keys, nil
