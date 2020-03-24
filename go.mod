@@ -1,6 +1,6 @@
 module github.com/GoogleCloudPlatform/cloud-run-button
 
-go 1.12
+go 1.14
 
 require (
 	cloud.google.com/go v0.55.0 // indirect
