@@ -16,10 +16,6 @@
     1. [Enable the billing API](https://console.developers.google.com/apis/api/cloudbilling.googleapis.com/overview)
     1. Create a Service Account with the *Cloud Run Admin*, *ServiceEnabler*, *Service Account User*, and *Storage Admin* roles
     1. Download the JSON key
-    1. Update gcloud:
-        ```
-        gcloud components update
-        ```
     1. Authenticate gcloud as the service account:
         ```
         export GOOGLE_APPLICATION_CREDENTIALS=PATH_TO_YOUR_SERVICE_ACCOUNT_KEY_FILE
