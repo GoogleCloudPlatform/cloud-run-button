@@ -66,9 +66,14 @@ For example:
         "skip": false
     },
     "hooks": {
-        "build": {
+        "prebuild": {
             "commands": [
-                "./my-custom-build"
+                "./my-custom-prebuild"
+            ]
+        },
+        "postbuild": {
+            "commands": [
+                "./my-custom-postbuild"
             ]
         },
         "precreate": {
