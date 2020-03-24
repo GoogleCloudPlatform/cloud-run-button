@@ -268,7 +268,7 @@ func run(opts runOpts) error {
 	skipBuild := appFile.Build.Skip != nil && *appFile.Build.Skip == true
 
 	if skipBuild {
-		// do nothing
+		fmt.Println(infoPrefix + " Skipping built-in build methods")
 	} else if dockerFileExists, _ := dockerFileExists(appDir); dockerFileExists {
 		fmt.Println(infoPrefix + " Attempting to build this application with its Dockerfile...")
 		fmt.Println(infoPrefix + " FYI, running the following command:")
