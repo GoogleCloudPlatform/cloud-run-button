@@ -2,7 +2,7 @@
 
 ## Test Cloud Run Button's Underlying Command Locally with Local Go
 
-1. Download Go 1.12.x
+1. Download Go 1.14.x
 1. Run the tests:
     ```
     go test ./cmd/cloudshell_open
