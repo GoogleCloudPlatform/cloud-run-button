@@ -110,9 +110,11 @@ Reference:
  application and environment variables `GOOGLE_CLOUD_PROJECT` (Google Cloud project), `GOOGLE_CLOUD_REGION`
  (selected Google Cloud Region), `K_SERVICE` (Cloud Run service name), `IMAGE_URL` (container image URL), `APP_DIR`
  (application directory). Command outputs are shown as they are executed.
-  - `prebuild`: _(optional)_ Runs the specified commands before running the built-in build methods
+  - `prebuild`: _(optional)_ Runs the specified commands before running the built-in build methods. Use the `IMAGE_URL`
+  environment variable for the container storage coordinates.
     - `commands`: _(array of strings)_ The list of commands to run
-  - `postbuild`: _(optional)_ Runs the specified commands after running the built-in build methods
+  - `postbuild`: _(optional)_ Runs the specified commands after running the built-in build methods. Use the `IMAGE_URL`
+  environment variable for the container storage coordinates.
     - `commands`: _(array of strings)_ The list of commands to run
   - `precreate`: _(optional)_ Runs the specified commands before the service has been created
     - `commands`: _(array of strings)_ The list of commands to run
