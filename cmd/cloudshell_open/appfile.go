@@ -43,15 +43,22 @@ type hook struct {
 	Commands []string `json:"commands"`
 }
 
+type build struct {
+	Skip *bool `json:"skip"`
+}
+
 type hooks struct {
 	PreCreate  hook `json:"precreate"`
 	PostCreate hook `json:"postcreate"`
+	PreBuild   hook `json:"prebuild"`
+	PostBuild  hook `json:"postbuild"`
 }
 
 type appFile struct {
 	Name    string         `json:"name"`
 	Env     map[string]env `json:"env"`
 	Options options        `json:"options"`
+	Build   build          `json:"build"`
 	Hooks   hooks          `json:"hooks"`
 
 	// The following are unused variables that are still silently accepted
