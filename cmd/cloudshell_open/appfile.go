@@ -44,7 +44,7 @@ type hook struct {
 }
 
 type build struct {
-	Skip       *bool `json:"skip"`
+	Skip *bool `json:"skip"`
 }
 
 type hooks struct {
