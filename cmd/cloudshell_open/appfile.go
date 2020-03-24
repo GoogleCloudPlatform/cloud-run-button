@@ -61,6 +61,7 @@ type appFile struct {
 	IgnoredLogo        string   `json:"logo"`
 	IgnoredRepository  string   `json:"repository"`
 	IgnoredWebsite     string   `json:"website"`
+	IgnoredStack       string   `json:"stack"`
 }
 
 const appJSON = `app.json`
