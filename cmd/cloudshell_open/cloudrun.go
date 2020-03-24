@@ -15,75 +15,22 @@
 package main
 
 import (
-	"bytes"
 	"context"
-	"encoding/json"
 	"fmt"
-	"os/exec"
 	"regexp"
 	"sort"
 	"strings"
 	"unicode"
 
 	"github.com/AlecAivazis/survey/v2"
-	runapi "google.golang.org/api/run/v1alpha1"
+	"google.golang.org/api/option"
+	runapi "google.golang.org/api/run/v1"
 )
 
 const (
 	defaultRunRegion = "us-central1"
 	defaultRunMemory = "512Mi"
 )
-
-type service struct {
-	Spec struct {
-		Template struct {
-			Spec struct {
-				Containers []struct {
-					EnvVars []struct {
-						Name  string `json:"name"`
-						Value string `json:"value"`
-					} `json:"env"`
-				} `json:"containers"`
-			} `json:"spec"`
-		} `json:"template"`
-	} `json:"spec"`
-	Status struct {
-		Address struct {
-			Url string `json:"url"`
-		} `json:"address"`
-	} `json:"status"`
-}
-
-func optionsToFlags(options options) []string {
-	authSetting := "--allow-unauthenticated"
-	if options.AllowUnauthenticated != nil && *options.AllowUnauthenticated == false {
-		authSetting = "--no-allow-unauthenticated"
-	}
-
-	return []string{authSetting}
-}
-
-func deploy(project, name, image, region string, envs []string, options options) (string, error) {
-	optionsFlags := optionsToFlags(options)
-
-	params := []string{
-		"beta", "run", "deploy", "-q",
-		name,
-		"--project", project,
-		"--platform", "managed",
-		"--image", image,
-		"--region", region,
-		"--memory", defaultRunMemory,
-		"--update-env-vars", strings.Join(envs, ","),
-	}
-
-	cmd := exec.Command("gcloud", append(params, optionsFlags...)...)
-
-	if b, err := cmd.CombinedOutput(); err != nil {
-		return "", fmt.Errorf("failed to deploy to Cloud Run: %+v. output:\n%s", err, string(b))
-	}
-	return serviceURL(project, name, region)
-}
 
 func projectRunLocations(ctx context.Context, project string) ([]string, error) {
 	runSvc, err := runapi.NewService(ctx)
@@ -125,42 +72,29 @@ func promptDeploymentRegion(ctx context.Context, project string) (string, error)
 	return choice, nil
 }
 
-func describe(project, name, region string) (*service, error) {
-	var service service
-	var o bytes.Buffer
-	var e bytes.Buffer
-
-	cmd := exec.Command("gcloud", "run", "services", "describe", name,
-		"--project", project,
-		"--platform", "managed",
-		"--region", region,
-		"--format=json")
-
-	cmd.Stdout = &o
-	cmd.Stderr = &e
-	if err := cmd.Run(); err != nil {
-		return nil, fmt.Errorf("error describing service: %+v. output=\n%s", err, e.String())
+func getService(project, name, region string) (*runapi.Service, error) {
+	client, err := runClient(region)
+	if err != nil {
+		return nil, fmt.Errorf("failed to initialize Run API client: %w", err)
 	}
+	return client.Namespaces.Services.Get(fmt.Sprintf("namespaces/%s/services/%s", project, name)).Do()
+}
 
-	if err := json.NewDecoder(&o).Decode(&service); err != nil {
-		return nil, fmt.Errorf("error decoding gcloud --format=json output: %+v", err)
-	}
-
-	return &service, nil
+func runClient(region string) (*runapi.APIService, error) {
+	regionalEndpoint := fmt.Sprintf("https://%s-run.googleapis.com/", region)
+	return runapi.NewService(context.TODO(), option.WithEndpoint(regionalEndpoint))
 }
 
 func serviceURL(project, name, region string) (string, error) {
-	service, err := describe(project, name, region)
-
+	service, err := getService(project, name, region)
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("failed to get Service: %w", err)
 	}
-
 	return service.Status.Address.Url, nil
 }
 
 func envVars(project, name, region string) (map[string]struct{}, error) {
-	service, err := describe(project, name, region)
+	service, err := getService(project, name, region)
 
 	if err != nil {
 		return nil, err
@@ -169,7 +103,7 @@ func envVars(project, name, region string) (map[string]struct{}, error) {
 	existing := make(map[string]struct{})
 
 	for _, container := range service.Spec.Template.Spec.Containers {
-		for _, envVar := range container.EnvVars {
+		for _, envVar := range container.Env {
 			existing[envVar.Name] = struct{}{}
 		}
 	}

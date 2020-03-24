@@ -16,13 +16,11 @@ package main
 
 import (
 	"bufio"
-	"bytes"
 	"context"
 	"errors"
 	"flag"
 	"fmt"
 	"os"
-	"os/exec"
 	"path/filepath"
 	"strings"
 	"time"
@@ -116,9 +114,8 @@ func run(opts runOpts) error {
 		return fmt.Errorf("--%s not specified", flRepoURL)
 	}
 
-	if trusted, err := checkCloudShellTrusted(); err != nil {
-		return err
-	} else if !trusted {
+	trusted := os.Getenv("TRUSTED_ENVIRONMENT") != "true"
+	if !trusted {
 		fmt.Printf("%s You launched this custom Cloud Shell image as \"Do not trust\".\n"+
 			"In this mode, your credentials are not available and this experience\n"+
 			"cannot deploy to Cloud Run. Start over and \"Trust\" the image.\n", errorLabel.Sprint("Error:"))
@@ -240,7 +237,7 @@ func run(opts runOpts) error {
 
 	existingEnvVars := make(map[string]struct{})
 	// todo(jamesward) actually determine if the service exists instead of assuming it doesn't if we get an error
-	existingService, err := describe(project, serviceName, region)
+	existingService, err := getService(project, serviceName, region)
 	if err == nil {
 		// service exists
 		existingEnvVars, err = envVars(project, serviceName, region)
@@ -369,25 +366,18 @@ func run(opts runOpts) error {
 	color.New(color.Underline, color.Bold).Printf("https://console.cloud.google.com/run?project=%s\n", project)
 	fmt.Printf("* Learn more about Cloud Run:\n\t")
 	color.New(color.Underline, color.Bold).Println("https://cloud.google.com/run/docs")
-	fmt.Printf(successPrefix+" %s %s\n",
+	fmt.Printf(successPrefix+" %s%s\n",
 		color.New(color.Bold).Sprint("Your application is now live here:\n\t"),
 		color.New(color.Bold, color.FgGreen, color.Underline).Sprint(url))
 	return nil
 }
 
-// checkCloudShellTrusted makes an API call to see if the current Cloud Shell
-// account is trusted. There's no cleaner way to do this currently
-// (bug/134073683). Ideally this would not happen since this image would be trusted,
-// but keeping it for dev/test scenarios.
-func checkCloudShellTrusted() (bool, error) {
-	b, err := exec.Command("gcloud", "organizations", "list", "-q").CombinedOutput()
-	if err == nil {
-		return true, nil
+func optionsToFlags(options options) []string {
+	authSetting := "--allow-unauthenticated"
+	if options.AllowUnauthenticated != nil && *options.AllowUnauthenticated == false {
+		authSetting = "--no-allow-unauthenticated"
 	}
-	if bytes.Contains(b, []byte("PERMISSION_DENIED")) {
-		return false, nil
-	}
-	return false, fmt.Errorf("error determining if cloud shell is trusted: %+v. output=\n%s", err, string(b))
+	return []string{authSetting}
 }
 
 func waitForBilling(projectID string, prompt func(string) error) error {
