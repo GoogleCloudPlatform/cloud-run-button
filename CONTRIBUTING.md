@@ -20,6 +20,7 @@
         ```
         export GOOGLE_APPLICATION_CREDENTIALS=PATH_TO_YOUR_SERVICE_ACCOUNT_KEY_FILE
         gcloud auth activate-service-account --key-file=$GOOGLE_APPLICATION_CREDENTIALS
+        export TRUSTED_ENVIRONMENT=true
         ```
     1. Run the button:
         ```
@@ -48,6 +49,7 @@
     docker run -it -v /var/run/docker.sock:/var/run/docker.sock \
       -v $KEY_FILE:/root/user.json \
       -e GOOGLE_APPLICATION_CREDENTIALS=/root/user.json \
+      -e TRUSTED_ENVIRONMENT=true \
       --entrypoint=/bin/sh cloud-run-button -c \
       "gcloud auth activate-service-account --key-file=/root/user.json \
       --quiet && gcloud auth configure-docker --quiet && \

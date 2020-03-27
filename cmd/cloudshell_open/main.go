@@ -114,7 +114,7 @@ func run(opts runOpts) error {
 		return fmt.Errorf("--%s not specified", flRepoURL)
 	}
 
-	trusted := os.Getenv("TRUSTED_ENVIRONMENT") != "true"
+	trusted := os.Getenv("TRUSTED_ENVIRONMENT") == "true"
 	if !trusted {
 		fmt.Printf("%s You launched this custom Cloud Shell image as \"Do not trust\".\n"+
 			"In this mode, your credentials are not available and this experience\n"+
