@@ -27,6 +27,10 @@ func enableAPIs(project string, apis []string) error {
 		return fmt.Errorf("failed to create resource manager client: %w", err)
 	}
 
+	// TODO(ahmetb) specify this explicitly, otherwise for some reason this becomes serviceusage.mtls.googleapis.com (and 404s)
+	// while querying the Operation. investigate later with the client library teams.
+	client.BasePath = "https://serviceusage.googleapis.com/"
+
 	enabled, err := enabledAPIs(client, project)
 	if err != nil {
 		return err
@@ -56,10 +60,11 @@ func enableAPIs(project string, apis []string) error {
 		return fmt.Errorf("failed to issue enable APIs request: %w", err)
 	}
 
+	opID := op.Name
 	for !op.Done {
-		op, err = client.Operations.Get(op.Name).Context(context.TODO()).Do()
+		op, err = client.Operations.Get(opID).Context(context.TODO()).Do()
 		if err != nil {
-			return fmt.Errorf("failed to query operation status (%s): %w", op.Name, err)
+			return fmt.Errorf("failed to query operation status (%s): %w", opID, err)
 		}
 		if op.Error != nil {
 			return fmt.Errorf("enabling APIs failed (operation=%s, code=%d): %s", op.Name, op.Error.Code, op.Error.Message)
@@ -73,7 +78,9 @@ func enabledAPIs(client *serviceusage.Service, project string) ([]string, error)
 	if err := client.Services.List("projects/"+project).PageSize(200).Pages(context.TODO(),
 		func(resp *serviceusage.ListServicesResponse) error {
 			for _, p := range resp.Services {
-				out = append(out, p.Config.Name)
+				if p.State == "ENABLED" {
+					out = append(out, p.Config.Name)
+				}
 			}
 			return nil
 		}); err != nil {
