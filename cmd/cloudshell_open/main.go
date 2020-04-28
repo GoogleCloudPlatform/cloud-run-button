@@ -25,6 +25,7 @@ import (
 	"strings"
 	"time"
 
+	"cloud.google.com/go/compute/metadata"
 	"github.com/briandowns/spinner"
 	"github.com/fatih/color"
 )
@@ -34,6 +35,9 @@ const (
 	flGitBranch = "git_branch"
 	flSubDir    = "dir"
 	flPage      = "page"
+
+	reauthCredentialsWaitTimeout     = time.Minute * 2
+	reauthCredentialsPollingInterval = time.Second
 
 	projectCreateURL = "https://console.cloud.google.com/cloud-resource-manager"
 )
@@ -96,7 +100,9 @@ func logProgress(msg, endMsg, errMsg string) func(bool) {
 	return func(success bool) {
 		s.Stop()
 		if success {
-			fmt.Printf("%s %s\n", successPrefix, endMsg)
+			if endMsg != "" {
+				fmt.Printf("%s %s\n", successPrefix, endMsg)
+			}
 		} else {
 			fmt.Printf("%s %s\n", errorPrefix, errMsg)
 		}
@@ -122,7 +128,20 @@ func run(opts runOpts) error {
 		return errors.New("aborting due to untrusted cloud shell environment")
 	}
 
-	end := logProgress(fmt.Sprintf("Cloning git repository %s...", highlight(repo)),
+	end := logProgress("Waiting for your approval to 'Authorize' Cloud Shell...",
+		"",
+		"Failed to get GCP credentials. Please authorize Cloud Shell if you're presented with a prompt.",
+	)
+	time.Sleep(time.Second * 2)
+	waitCtx, cancelWait := context.WithTimeout(ctx, reauthCredentialsWaitTimeout)
+	err := waitCredsAvailable(waitCtx, reauthCredentialsPollingInterval)
+	cancelWait()
+	end(err == nil)
+	if err != nil {
+		return err
+	}
+
+	end = logProgress(fmt.Sprintf("Cloning git repository %s...", highlight(repo)),
 		fmt.Sprintf("Cloned git repository %s.", highlight(repo)),
 		fmt.Sprintf("Failed to clone git repository %s", highlight(repo)))
 	cloneDir, err := handleRepo(repo)
@@ -381,6 +400,35 @@ func optionsToFlags(options options) []string {
 		authSetting = "--no-allow-unauthenticated"
 	}
 	return []string{authSetting}
+}
+
+// waitCredsAvailable polls until Cloud Shell VM has available credentials.
+// Credentials might be missing in the environment for some GSuite users that
+// need to authenticate every N hours. See internal bug 154573156 for details.
+func waitCredsAvailable(ctx context.Context, pollInterval time.Duration) error {
+	if os.Getenv("SKIP_GCE_CHECK") == "" && !metadata.OnGCE() {
+		return nil
+	}
+
+	for {
+		select {
+		case <-ctx.Done():
+			err := ctx.Err()
+			if err == context.DeadlineExceeded {
+				return errors.New("credentials were not available in the VM, try re-authenticating if Cloud Shell presents an authentication prompt and click the button again")
+			}
+			return err
+		default:
+			v, err := metadata.Get("instance/service-accounts/")
+			if err != nil {
+				return fmt.Errorf("failed to query metadata service to see if credentials are present: %w", err)
+			}
+			if strings.TrimSpace(v) != "" {
+				return nil
+			}
+			time.Sleep(pollInterval)
+		}
+	}
 }
 
 func waitForBilling(projectID string, prompt func(string) error) error {

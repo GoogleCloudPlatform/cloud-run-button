@@ -1,9 +1,14 @@
 package main
 
 import (
+	"context"
 	"fmt"
+	"net/http"
+	"net/http/httptest"
 	"os"
+	"regexp"
 	"testing"
+	"time"
 )
 
 func Test_isSubPath(t *testing.T) {
@@ -109,5 +114,66 @@ func Test_hasSubDirsInPATH(t *testing.T) {
 			}
 			os.Setenv("PATH", op)
 		})
+	}
+}
+
+func Test_waitCredsAvailable_timeout(t *testing.T) {
+	calls := 0
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
+		w.WriteHeader(http.StatusOK)
+		calls++
+	}))
+	defer srv.Close()
+	host := regexp.MustCompile(`^https?://`).ReplaceAllString(srv.URL, "")
+	defer withTestEnv("GCE_METADATA_HOST", host)()
+	defer withTestEnv("SKIP_GCE_CHECK", "1")() // so we don't return early
+
+	ctx, cancel := context.WithTimeout(context.Background(), time.Millisecond*200)
+	defer cancel()
+	err := waitCredsAvailable(ctx, time.Millisecond*50)
+	if err == nil {
+		t.Fatal("expected err")
+	}
+	if calls == 0 {
+		t.Fatal("no calls were made to http server")
+	}
+}
+
+func Test_waitCredsAvailable_success(t *testing.T) {
+	if testing.Short() {
+		t.Skip("skipping since this test waits 1s")
+	}
+
+	calls := 0
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
+		calls++
+		fmt.Fprintln(w, "hello/\nworld/")
+	}))
+	defer srv.Close()
+	host := regexp.MustCompile(`^https?://`).ReplaceAllString(srv.URL, "")
+	defer withTestEnv("GCE_METADATA_HOST", host)()
+	defer withTestEnv("SKIP_GCE_CHECK", "1")() // so we don't return early
+
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+	defer cancel()
+	err := waitCredsAvailable(ctx, time.Millisecond*50)
+	if err != nil {
+		t.Fatalf("got err: %v", err)
+	}
+	if calls == 0 {
+		t.Fatal("no calls were made to http server")
+	}
+}
+
+func withTestEnv(k, v string) (cleanup func()) {
+	orig, ok := os.LookupEnv(k)
+	os.Setenv(k, v)
+	if !ok {
+		return func() {
+			os.Unsetenv(k)
+		}
+	}
+	return func() {
+		os.Setenv(k, orig)
 	}
 }

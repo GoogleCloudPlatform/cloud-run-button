@@ -2,10 +2,11 @@ package main
 
 import (
 	"fmt"
-	"github.com/pkg/errors"
 	"log"
 	"net/http"
 	"os"
+
+	"github.com/pkg/errors"
 )
 
 const (
