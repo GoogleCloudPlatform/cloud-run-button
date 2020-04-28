@@ -3,7 +3,7 @@ module github.com/GoogleCloudPlatform/cloud-run-button
 go 1.14
 
 require (
-	cloud.google.com/go v0.55.0 // indirect
+	cloud.google.com/go v0.55.0
 	cloud.google.com/go/pubsub v1.3.1 // indirect
 	dmitri.shuralyov.com/gpu/mtl v0.0.0-20191203043605-d42048ed14fd // indirect
 	github.com/AlecAivazis/survey/v2 v2.0.7
