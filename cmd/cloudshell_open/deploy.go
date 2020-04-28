@@ -105,16 +105,19 @@ func newService(name, project, image string, envs map[string]string) *runapi.Ser
 			},
 		},
 	}
-	applyMeta(svc.Metadata.Annotations, image)
-	applyMeta(svc.Spec.Template.Metadata.Annotations, image)
+	applyMeta(svc.Metadata, image)
+	applyMeta(svc.Spec.Template.Metadata, image)
 
 	return svc
 }
 
 // applyMeta applies optional annotations to the specified Metadata.Annotation field.
-func applyMeta(meta map[string]string, userImage string) {
-	meta["client.knative.dev/user-image"] = userImage
-	meta["run.googleapis.com/client-name"] = "cloud-run-button"
+func applyMeta(meta *runapi.ObjectMeta, userImage string) {
+	if meta.Annotations == nil {
+		meta.Annotations = make(map[string]string)
+	}
+	meta.Annotations["client.knative.dev/user-image"] = userImage
+	meta.Annotations["run.googleapis.com/client-name"] = "cloud-run-button"
 }
 
 // generateRevisionName attempts to generate a random revision name that is alphabetically increasing but also has
@@ -138,8 +141,8 @@ func patchService(svc *runapi.Service, envs map[string]string, image string) *ru
 	svc.Spec.Template.Spec.Containers[0].Image = image
 
 	// apply metadata annotations
-	applyMeta(svc.Metadata.Annotations, image)
-	applyMeta(svc.Spec.Template.Metadata.Annotations, image)
+	applyMeta(svc.Metadata, image)
+	applyMeta(svc.Spec.Template.Metadata, image)
 
 	// update revision name
 	svc.Spec.Template.Metadata.Name = generateRevisionName(svc.Metadata.Name, svc.Metadata.Generation)
