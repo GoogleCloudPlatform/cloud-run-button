@@ -274,9 +274,10 @@ func run(opts runOpts) error {
 	serviceEnv := fmt.Sprintf("K_SERVICE=%s", serviceName)
 	imageEnv := fmt.Sprintf("IMAGE_URL=%s", image)
 	appDirEnv := fmt.Sprintf("APP_DIR=%s", appDir)
-	pathEnv := fmt.Sprintf("PATH=%s", os.Getenv("PATH"))
+	inheritedEnv := os.Environ()
 
-	hookEnvs := append([]string{projectEnv, regionEnv, serviceEnv, imageEnv, appDirEnv, pathEnv}, envs...)
+	hookEnvs := append([]string{projectEnv, regionEnv, serviceEnv, imageEnv, appDirEnv}, envs...)
+	hookEnvs = append(hookEnvs, inheritedEnv...)
 
 	pushImage := true
 
