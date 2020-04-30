@@ -35,6 +35,7 @@ const (
 	flGitBranch = "git_branch"
 	flSubDir    = "dir"
 	flPage      = "page"
+	flContext   = "context"
 
 	reauthCredentialsWaitTimeout     = time.Minute * 2
 	reauthCredentialsPollingInterval = time.Second
@@ -66,6 +67,7 @@ func init() {
 	flags.StringVar(&opts.repoURL, flRepoURL, "", "url to git repo")
 	flags.StringVar(&opts.gitBranch, flGitBranch, "", "(optional) branch/revision to use from the git repo")
 	flags.StringVar(&opts.subDir, flSubDir, "", "(optional) sub-directory to deploy in the repo")
+	flags.StringVar(&opts.context, flContext, "", "(optional) arbitrary context")
 	_ = flags.String(flPage, "", "ignored")
 }
 func main() {
@@ -90,6 +92,7 @@ type runOpts struct {
 	repoURL   string
 	gitBranch string
 	subDir    string
+	context   string
 }
 
 func logProgress(msg, endMsg, errMsg string) func(bool) {
@@ -281,6 +284,11 @@ func run(opts runOpts) error {
 
 	skipBuild := appFile.Build.Skip != nil && *appFile.Build.Skip == true
 
+	builderImage := "heroku/buildpacks"
+	if opts.context == "cloudrun-gbp" {
+		builderImage = "gcr.io/buildpacks/builder"
+	}
+
 	if skipBuild {
 		fmt.Println(infoPrefix + " Skipping built-in build methods")
 	} else if dockerFileExists, _ := dockerFileExists(appDir); dockerFileExists {
@@ -297,8 +305,8 @@ func run(opts runOpts) error {
 	} else {
 		fmt.Println(infoPrefix + " Attempting to build this application with Cloud Native Buildpacks (buildpacks.io)...")
 		fmt.Println(infoPrefix + " FYI, running the following command:")
-		cmdColor.Printf("\tpack build %s --path %s --builder heroku/buildpacks\n", parameter(image), parameter(appDir))
-		err = packBuild(appDir, image)
+		cmdColor.Printf("\tpack build %s --path %s --builder %s\n", parameter(image), parameter(appDir), parameter(builderImage))
+		err = packBuild(appDir, image, builderImage)
 	}
 
 	if !skipBuild {
