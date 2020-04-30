@@ -150,12 +150,6 @@ func run(opts runOpts) error {
 		return err
 	}
 
-	if ok, err := hasSubDirsInPATH(cloneDir); err != nil {
-		return fmt.Errorf("failed to determine if clone dir has subdirectories in PATH: %v", err)
-	} else if ok {
-		return fmt.Errorf("cloning git repo to %s could potentially add executable files to PATH", cloneDir)
-	}
-
 	if opts.gitBranch != "" {
 		if err := gitCheckout(cloneDir, opts.gitBranch); err != nil {
 			return fmt.Errorf("failed to checkout revision %q: %+v", opts.gitBranch, err)

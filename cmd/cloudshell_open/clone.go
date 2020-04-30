@@ -35,6 +35,12 @@ func handleRepo(repo string) (string, error) {
 	if err != nil {
 		return "", err
 	}
+
+	if ok, err := hasSubDirsInPATH(dir); err != nil {
+		return "", fmt.Errorf("failed to determine if clone dir has subdirectories in PATH: %v", err)
+	} else if ok {
+		return "", fmt.Errorf("cloning git repo to %s could potentially add executable files to PATH", dir)
+	}
 	return dir, clone(repo, dir)
 }
 
