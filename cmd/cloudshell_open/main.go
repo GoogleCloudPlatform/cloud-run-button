@@ -388,7 +388,7 @@ func run(opts runOpts) error {
 
 	fmt.Printf("* This application is billed only when it's handling requests.\n")
 	fmt.Printf("* Manage this application at Cloud Console:\n\t")
-	color.New(color.Underline, color.Bold).Printf("https://console.cloud.google.com/run?project=%s\n", project)
+	color.New(color.Underline, color.Bold).Printf("https://console.cloud.google.com/run/detail/%s/%s?project=%s\n", region, serviceName, project)
 	fmt.Printf("* Learn more about Cloud Run:\n\t")
 	color.New(color.Underline, color.Bold).Println("https://cloud.google.com/run/docs")
 	fmt.Printf(successPrefix+" %s%s\n",
