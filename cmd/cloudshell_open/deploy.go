@@ -167,7 +167,7 @@ func mergeEnvs(existing []*runapi.EnvVar, env map[string]string) []*runapi.EnvVa
 
 // waitReady waits until the specified service reaches Ready status
 func waitReady(project, name, region string) error {
-	wait := time.Second * 30
+	wait := time.Minute * 4
 	deadline := time.Now().Add(wait)
 	for time.Now().Before(deadline) {
 		svc, err := getService(project, name, region)
