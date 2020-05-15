@@ -184,6 +184,7 @@ func waitReady(project, name, region string) error {
 				}
 			}
 		}
+		time.Sleep(time.Second * 2)
 	}
 	return fmt.Errorf("the service did not become ready in %s, check Cloud Console for logs to see why it failed", wait)
 }
