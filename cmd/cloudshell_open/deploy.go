@@ -34,7 +34,7 @@ func deploy(project, name, image, region string, envs []string, options options)
 	svc, err := getService(project, name, region)
 	if err == nil {
 		// existing service
-		svc = patchService(svc, envVars, image, options)
+		svc = patchService(svc, envVars, image)
 		_, err = client.Namespaces.Services.ReplaceService("namespaces/"+project+"/services/"+name, svc).Do()
 		if err != nil {
 			if e, ok := err.(*googleapi.Error); ok {
@@ -145,15 +145,12 @@ func generateRevisionName(name string, objectGeneration int64) string {
 }
 
 // patchService modifies an existing Service with requested changes.
-func patchService(svc *runapi.Service, envs map[string]string, image string, options options) *runapi.Service {
+func patchService(svc *runapi.Service, envs map[string]string, image string) *runapi.Service {
 	// merge env vars
 	svc.Spec.Template.Spec.Containers[0].Env = mergeEnvs(svc.Spec.Template.Spec.Containers[0].Env, envs)
 
 	// update container image
 	svc.Spec.Template.Spec.Containers[0].Image = image
-
-	// update the resources
-	svc.Spec.Template.Spec.Containers[0].Resources = optionsToResourceRequirements(options)
 
 	// apply metadata annotations
 	applyMeta(svc.Metadata, image)
