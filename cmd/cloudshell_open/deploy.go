@@ -72,14 +72,14 @@ func deploy(project, name, image, region string, envs []string, options options)
 }
 
 func optionsToResourceRequirements(options options) *runapi.ResourceRequirements {
-	requests := make(map[string]string)
+	limits := make(map[string]string)
 	if options.Memory != "" {
-		requests["memory"] = options.Memory
+		limits["memory"] = options.Memory
 	}
 	if options.Cpu != "" {
-		requests["cpu"] = options.Cpu
+		limits["cpu"] = options.Cpu
 	}
-	return &runapi.ResourceRequirements{Requests: requests}
+	return &runapi.ResourceRequirements{Limits: limits}
 }
 
 // newService initializes a new Knative Service object with given properties.

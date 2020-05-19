@@ -365,8 +365,10 @@ func run(opts runOpts) error {
 
 	for _, optionFlag := range optionsFlags {
 		cmdColor.Println("\\")
-		cmdColor.Printf("\t  %s\n", optionFlag)
+		cmdColor.Printf("\t  %s", optionFlag)
 	}
+
+	cmdColor.Println("")
 
 	end = logProgress(fmt.Sprintf("Deploying service %s to Cloud Run...", serviceLabel),
 		fmt.Sprintf("Successfully deployed service %s to Cloud Run.", serviceLabel),
