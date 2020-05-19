@@ -34,7 +34,7 @@ func deploy(project, name, image, region string, envs []string, options options)
 	svc, err := getService(project, name, region)
 	if err == nil {
 		// existing service
-		svc = patchService(svc, envVars, image)
+		svc = patchService(svc, envVars, image, options)
 		_, err = client.Namespaces.Services.ReplaceService("namespaces/"+project+"/services/"+name, svc).Do()
 		if err != nil {
 			if e, ok := err.(*googleapi.Error); ok {
@@ -44,7 +44,7 @@ func deploy(project, name, image, region string, envs []string, options options)
 		}
 	} else {
 		// new service
-		svc := newService(name, project, image, envVars)
+		svc := newService(name, project, image, envVars, options)
 		_, err = client.Namespaces.Services.Create("namespaces/"+project, svc).Do()
 		if err != nil {
 			if e, ok := err.(*googleapi.Error); ok {
@@ -71,8 +71,19 @@ func deploy(project, name, image, region string, envs []string, options options)
 	return out.Status.Url, nil
 }
 
+func optionsToResourceRequirements(options options) *runapi.ResourceRequirements {
+	requests := make(map[string]string)
+	if options.Memory != "" {
+		requests["memory"] = options.Memory
+	}
+	if options.Cpu != "" {
+		requests["cpu"] = options.Cpu
+	}
+	return &runapi.ResourceRequirements{Requests: requests}
+}
+
 // newService initializes a new Knative Service object with given properties.
-func newService(name, project, image string, envs map[string]string) *runapi.Service {
+func newService(name, project, image string, envs map[string]string, options options) *runapi.Service {
 	var envVars []*runapi.EnvVar
 	for k, v := range envs {
 		envVars = append(envVars, &runapi.EnvVar{Name: k, Value: v})
@@ -97,6 +108,7 @@ func newService(name, project, image string, envs map[string]string) *runapi.Ser
 						{
 							Image: image,
 							Env:   envVars,
+							Resources: optionsToResourceRequirements(options),
 						},
 					},
 				},
@@ -133,12 +145,15 @@ func generateRevisionName(name string, objectGeneration int64) string {
 }
 
 // patchService modifies an existing Service with requested changes.
-func patchService(svc *runapi.Service, envs map[string]string, image string) *runapi.Service {
+func patchService(svc *runapi.Service, envs map[string]string, image string, options options) *runapi.Service {
 	// merge env vars
 	svc.Spec.Template.Spec.Containers[0].Env = mergeEnvs(svc.Spec.Template.Spec.Containers[0].Env, envs)
 
 	// update container image
 	svc.Spec.Template.Spec.Containers[0].Image = image
+
+	// update the resources
+	svc.Spec.Template.Spec.Containers[0].Resources = optionsToResourceRequirements(options)
 
 	// apply metadata annotations
 	applyMeta(svc.Metadata, image)

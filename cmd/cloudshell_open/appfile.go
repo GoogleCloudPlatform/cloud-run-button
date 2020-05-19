@@ -36,7 +36,9 @@ type env struct {
 }
 
 type options struct {
-	AllowUnauthenticated *bool `json:"allow-unauthenticated"`
+	AllowUnauthenticated *bool  `json:"allow-unauthenticated"`
+	Memory               string `json:"memory"`
+	Cpu                  string `json:"cpu"`
 }
 
 type hook struct {
