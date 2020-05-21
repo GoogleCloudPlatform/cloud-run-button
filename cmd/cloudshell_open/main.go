@@ -357,8 +357,6 @@ func run(opts runOpts) error {
 	cmdColor.Printf("\t  --region=%s", parameter(region))
 	cmdColor.Println("\\")
 	cmdColor.Printf("\t  --image=%s", parameter(image))
-	cmdColor.Println("\\")
-	cmdColor.Printf("\t  --memory=%s", parameter(defaultRunMemory))
 
 	if len(envs) > 0 {
 		cmdColor.Println("\\")
@@ -367,8 +365,10 @@ func run(opts runOpts) error {
 
 	for _, optionFlag := range optionsFlags {
 		cmdColor.Println("\\")
-		cmdColor.Printf("\t  %s\n", optionFlag)
+		cmdColor.Printf("\t  %s", optionFlag)
 	}
+
+	cmdColor.Println("")
 
 	end = logProgress(fmt.Sprintf("Deploying service %s to Cloud Run...", serviceLabel),
 		fmt.Sprintf("Successfully deployed service %s to Cloud Run.", serviceLabel),
@@ -398,11 +398,25 @@ func run(opts runOpts) error {
 }
 
 func optionsToFlags(options options) []string {
+	var flags []string
+
 	authSetting := "--allow-unauthenticated"
 	if options.AllowUnauthenticated != nil && *options.AllowUnauthenticated == false {
 		authSetting = "--no-allow-unauthenticated"
 	}
-	return []string{authSetting}
+	flags = append(flags, authSetting)
+
+	if options.Memory != "" {
+		memorySetting := fmt.Sprintf("--memory=%s", options.Memory)
+		flags = append(flags, memorySetting)
+	}
+
+	if options.CPU != "" {
+		cpuSetting := fmt.Sprintf("--cpu=%s", options.CPU)
+		flags = append(flags, cpuSetting)
+	}
+
+	return flags
 }
 
 // waitCredsAvailable polls until Cloud Shell VM has available credentials.

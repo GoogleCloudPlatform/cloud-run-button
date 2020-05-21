@@ -44,7 +44,7 @@ func deploy(project, name, image, region string, envs []string, options options)
 		}
 	} else {
 		// new service
-		svc := newService(name, project, image, envVars)
+		svc := newService(name, project, image, envVars, options)
 		_, err = client.Namespaces.Services.Create("namespaces/"+project, svc).Do()
 		if err != nil {
 			if e, ok := err.(*googleapi.Error); ok {
@@ -71,8 +71,19 @@ func deploy(project, name, image, region string, envs []string, options options)
 	return out.Status.Url, nil
 }
 
+func optionsToResourceRequirements(options options) *runapi.ResourceRequirements {
+	limits := make(map[string]string)
+	if options.Memory != "" {
+		limits["memory"] = options.Memory
+	}
+	if options.CPU != "" {
+		limits["cpu"] = options.CPU
+	}
+	return &runapi.ResourceRequirements{Limits: limits}
+}
+
 // newService initializes a new Knative Service object with given properties.
-func newService(name, project, image string, envs map[string]string) *runapi.Service {
+func newService(name, project, image string, envs map[string]string, options options) *runapi.Service {
 	var envVars []*runapi.EnvVar
 	for k, v := range envs {
 		envVars = append(envVars, &runapi.EnvVar{Name: k, Value: v})
@@ -97,6 +108,7 @@ func newService(name, project, image string, envs map[string]string) *runapi.Ser
 						{
 							Image: image,
 							Env:   envVars,
+							Resources: optionsToResourceRequirements(options),
 						},
 					},
 				},

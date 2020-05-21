@@ -66,7 +66,9 @@ For example:
         }
     },
     "options": {
-        "allow-unauthenticated": false
+        "allow-unauthenticated": false,
+        "memory": "512Mi",
+        "cpu": "1"
     },
     "build": {
         "skip": false
@@ -110,6 +112,8 @@ Reference:
   - `generator`, _(optional)_ use a generator for the value, currently only support `secret`
 - `options`: _(optional)_ Options when deploying the service
   - `allow-unauthenticated`: _(optional, default: `true`)_ allow unauthenticated requests
+  - `memory`: _(optional)_ memory for each instance
+  - `cpu`: _(optional)_ cpu for each instance
 - `build`: _(optional)_ Build configuration
   - `skip`: _(optional, default: `false`)_ skips the built-in build methods (`docker build`, `Maven Jib`, and
  `buildpacks`), but still allows for `prebuild` and `postbuild` hooks to be run in order to build the container image
