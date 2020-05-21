@@ -76,8 +76,8 @@ func optionsToResourceRequirements(options options) *runapi.ResourceRequirements
 	if options.Memory != "" {
 		limits["memory"] = options.Memory
 	}
-	if options.Cpu != "" {
-		limits["cpu"] = options.Cpu
+	if options.CPU != "" {
+		limits["cpu"] = options.CPU
 	}
 	return &runapi.ResourceRequirements{Limits: limits}
 }

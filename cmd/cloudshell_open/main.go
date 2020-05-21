@@ -411,8 +411,8 @@ func optionsToFlags(options options) []string {
 		flags = append(flags, memorySetting)
 	}
 
-	if options.Cpu != "" {
-		cpuSetting := fmt.Sprintf("--cpu=%s", options.Cpu)
+	if options.CPU != "" {
+		cpuSetting := fmt.Sprintf("--cpu=%s", options.CPU)
 		flags = append(flags, cpuSetting)
 	}
 
