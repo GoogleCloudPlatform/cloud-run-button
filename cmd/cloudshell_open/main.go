@@ -131,7 +131,7 @@ func run(opts runOpts) error {
 		return errors.New("aborting due to untrusted cloud shell environment")
 	}
 
-	end := logProgress("Waiting for your approval to 'Authorize' Cloud Shell...",
+	end := logProgress("Waiting for Cloud Shell authorization...",
 		"",
 		"Failed to get GCP credentials. Please authorize Cloud Shell if you're presented with a prompt.",
 	)
