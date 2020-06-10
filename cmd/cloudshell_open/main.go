@@ -284,19 +284,28 @@ func run(opts runOpts) error {
 
 	skipBuild := appFile.Build.Skip != nil && *appFile.Build.Skip == true
 
-	builderImage := "heroku/buildpacks"
-	if opts.context == "cloudrun-gbp" {
-		builderImage = "gcr.io/buildpacks/builder"
+	skipDocker := false
+	skipJib := false
+
+	builderImage := "gcr.io/buildpacks/builder:v1"
+
+	if appFile.Build.Buildpacks.Builder != "" {
+		skipDocker = true
+		skipJib = true
+		builderImage = appFile.Build.Buildpacks.Builder
 	}
+
+	dockerFileExists, _ := dockerFileExists(appDir)
+	jibMaven, _ := jibMavenConfigured(appDir)
 
 	if skipBuild {
 		fmt.Println(infoPrefix + " Skipping built-in build methods")
-	} else if dockerFileExists, _ := dockerFileExists(appDir); dockerFileExists {
+	} else if !skipDocker && dockerFileExists {
 		fmt.Println(infoPrefix + " Attempting to build this application with its Dockerfile...")
 		fmt.Println(infoPrefix + " FYI, running the following command:")
 		cmdColor.Printf("\tdocker build -t %s %s\n", parameter(image), parameter("."))
 		err = dockerBuild(appDir, image)
-	} else if jibMaven, _ := jibMavenConfigured(appDir); jibMaven {
+	} else if !skipJib && jibMaven {
 		pushImage = false
 		fmt.Println(infoPrefix + " Attempting to build this application with Jib Maven plugin...")
 		fmt.Println(infoPrefix + " FYI, running the following command:")
