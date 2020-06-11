@@ -45,8 +45,13 @@ type hook struct {
 	Commands []string `json:"commands"`
 }
 
+type buildpacks struct {
+	Builder	string `json:"builder"`
+}
+
 type build struct {
 	Skip *bool `json:"skip"`
+	Buildpacks buildpacks `json:"buildpacks"`
 }
 
 type hooks struct {
