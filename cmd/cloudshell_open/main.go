@@ -274,6 +274,9 @@ func run(opts runOpts) error {
 	inheritedEnv := os.Environ()
 
 	hookEnvs := append([]string{projectEnv, regionEnv, serviceEnv, imageEnv, appDirEnv}, envs...)
+	for key, value := range existingEnvVars {
+		hookEnvs = append(hookEnvs, fmt.Sprintf("%s=%s", key, value))
+	}
 	hookEnvs = append(hookEnvs, inheritedEnv...)
 
 	pushImage := true
