@@ -306,7 +306,7 @@ func run(opts runOpts) error {
 	} else if !skipDocker && dockerFileExists {
 		fmt.Println(infoPrefix + " Attempting to build this application with its Dockerfile...")
 		fmt.Println(infoPrefix + " FYI, running the following command:")
-		cmdColor.Printf("\tdocker build -t %s %s\n", parameter(image), parameter("."))
+		cmdColor.Printf("\tdocker build -t %s %s\n", parameter(image), parameter(appDir))
 		err = dockerBuild(appDir, image)
 	} else if !skipJib && jibMaven {
 		pushImage = false
