@@ -354,7 +354,9 @@ func run(opts runOpts) error {
 		if err != nil {
 			return err
 		}
-	}
+	} else {
+        fmt.Println(infoPrefix + " Configured create hooks are skipped on existing services")
+    }
 
 	optionsFlags := optionsToFlags(appFile.Options)
 
