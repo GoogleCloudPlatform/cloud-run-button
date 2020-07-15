@@ -46,11 +46,11 @@ type hook struct {
 }
 
 type buildpacks struct {
-	Builder	string `json:"builder"`
+	Builder string `json:"builder"`
 }
 
 type build struct {
-	Skip *bool `json:"skip"`
+	Skip       *bool      `json:"skip"`
 	Buildpacks buildpacks `json:"buildpacks"`
 }
 

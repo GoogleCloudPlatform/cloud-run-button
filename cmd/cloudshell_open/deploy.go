@@ -106,8 +106,8 @@ func newService(name, project, image string, envs map[string]string, options opt
 				Spec: &runapi.RevisionSpec{
 					Containers: []*runapi.Container{
 						{
-							Image: image,
-							Env:   envVars,
+							Image:     image,
+							Env:       envVars,
 							Resources: optionsToResourceRequirements(options),
 						},
 					},
