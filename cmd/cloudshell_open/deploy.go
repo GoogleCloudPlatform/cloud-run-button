@@ -106,8 +106,8 @@ func newService(name, project, image string, envs map[string]string, options opt
 				Spec: &runapi.RevisionSpec{
 					Containers: []*runapi.Container{
 						{
-							Image: image,
-							Env:   envVars,
+							Image:     image,
+							Env:       envVars,
 							Resources: optionsToResourceRequirements(options),
 						},
 					},
@@ -116,6 +116,10 @@ func newService(name, project, image string, envs map[string]string, options opt
 				NullFields:      nil,
 			},
 		},
+	}
+	if options.Port > 0 {
+		svc.Spec.Template.Spec.Containers[0].Ports = append(svc.Spec.Template.Spec.Containers[0].Ports,
+			&runapi.ContainerPort{ContainerPort: int64(options.Port)})
 	}
 	applyMeta(svc.Metadata, image)
 	applyMeta(svc.Spec.Template.Metadata, image)

@@ -369,7 +369,10 @@ func run(opts runOpts) error {
 	cmdColor.Printf("\t  --region=%s", parameter(region))
 	cmdColor.Println("\\")
 	cmdColor.Printf("\t  --image=%s", parameter(image))
-
+	if appFile.Options.Port > 0 {
+		cmdColor.Println("\\")
+		cmdColor.Printf("\t  --port=%s", parameter(fmt.Sprintf("%d", appFile.Options.Port)))
+	}
 	if len(envs) > 0 {
 		cmdColor.Println("\\")
 		cmdColor.Printf("\t  --update-env-vars=%s", parameter(strings.Join(envs, ",")))
