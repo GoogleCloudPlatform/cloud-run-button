@@ -303,33 +303,33 @@ func run(opts runOpts) error {
 
 	if skipBuild {
 		fmt.Println(infoPrefix + " Skipping built-in build methods")
-	} else if !skipDocker && dockerFileExists {
-		fmt.Println(infoPrefix + " Attempting to build this application with its Dockerfile...")
-		fmt.Println(infoPrefix + " FYI, running the following command:")
-		cmdColor.Printf("\tdocker build -t %s %s\n", parameter(image), parameter(appDir))
-		err = dockerBuild(appDir, image)
-	} else if !skipJib && jibMaven {
-		pushImage = false
-		fmt.Println(infoPrefix + " Attempting to build this application with Jib Maven plugin...")
-		fmt.Println(infoPrefix + " FYI, running the following command:")
-		cmdColor.Printf("\tmvn package jib:build -Dimage=%s\n", parameter(image))
-		err = jibMavenBuild(appDir, image)
 	} else {
-		fmt.Println(infoPrefix + " Attempting to build this application with Cloud Native Buildpacks (buildpacks.io)...")
-		fmt.Println(infoPrefix + " FYI, running the following command:")
-		cmdColor.Printf("\tpack build %s --path %s --builder %s\n", parameter(image), parameter(appDir), parameter(builderImage))
-		err = packBuild(appDir, image, builderImage)
-	}
-
-	if !skipBuild {
 		end = logProgress(fmt.Sprintf("Building container image %s", highlight(image)),
 			fmt.Sprintf("Built container image %s", highlight(image)),
 			"Failed to build container image.")
-	}
 
-	end(err == nil)
-	if err != nil {
-		return fmt.Errorf("attempted to build and failed: %s", err)
+		if !skipDocker && dockerFileExists {
+			fmt.Println(infoPrefix + " Attempting to build this application with its Dockerfile...")
+			fmt.Println(infoPrefix + " FYI, running the following command:")
+			cmdColor.Printf("\tdocker build -t %s %s\n", parameter(image), parameter(appDir))
+			err = dockerBuild(appDir, image)
+		} else if !skipJib && jibMaven {
+			pushImage = false
+			fmt.Println(infoPrefix + " Attempting to build this application with Jib Maven plugin...")
+			fmt.Println(infoPrefix + " FYI, running the following command:")
+			cmdColor.Printf("\tmvn package jib:build -Dimage=%s\n", parameter(image))
+			err = jibMavenBuild(appDir, image)
+		} else {
+			fmt.Println(infoPrefix + " Attempting to build this application with Cloud Native Buildpacks (buildpacks.io)...")
+			fmt.Println(infoPrefix + " FYI, running the following command:")
+			cmdColor.Printf("\tpack build %s --path %s --builder %s\n", parameter(image), parameter(appDir), parameter(builderImage))
+			err = packBuild(appDir, image, builderImage)
+		}
+
+		end(err == nil)
+		if err != nil {
+			return fmt.Errorf("attempted to build and failed: %s", err)
+		}
 	}
 
 	if appFile.Hooks.PostBuild.Commands != nil {
