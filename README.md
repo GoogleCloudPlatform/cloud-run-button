@@ -47,7 +47,7 @@ If you include an `app.json` at the root of your repository, it allows you
 customize the experience such as defining an alternative service name, or
 prompting for additional environment variables.
 
-For example:
+For example, a fully populated `app.json` file looks like this:
 
 ```json
 {
@@ -68,7 +68,8 @@ For example:
     "options": {
         "allow-unauthenticated": false,
         "memory": "512Mi",
-        "cpu": "1"
+        "cpu": "1",
+        "port": "80"
     },
     "build": {
         "skip": false,
@@ -117,6 +118,8 @@ Reference:
   - `allow-unauthenticated`: _(optional, default: `true`)_ allow unauthenticated requests
   - `memory`: _(optional)_ memory for each instance
   - `cpu`: _(optional)_ cpu for each instance
+  - `port`: _(optional)_ if your application doesn't respect the PORT environment
+    variable provided by Cloud Run, specify the port number it listens on.
 - `build`: _(optional)_ Build configuration
   - `skip`: _(optional, default: `false`)_ skips the built-in build methods (`docker build`, `Maven Jib`, and
  `buildpacks`), but still allows for `prebuild` and `postbuild` hooks to be run in order to build the container image
