@@ -26,7 +26,7 @@
         ```
         (cd /tmp; ./cloudshell_open --repo_url=https://github.com/GoogleCloudPlatform/cloud-run-hello.git; rm -rf cloud-run-hello)
         ```
-        Other `cloudshell_open` flags: `--git_branch`, `--dir`, `--context`
+        Other `cloudshell_open` flags: `--git_branch`, `--dir`, `--context`, `--region`, `--project`
 
 ## Test Cloud Run Button's Underlying Command Locally in a Container
 
