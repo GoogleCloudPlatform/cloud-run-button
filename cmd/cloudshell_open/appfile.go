@@ -62,11 +62,6 @@ type hooks struct {
 	PostBuild  hook `json:"postbuild"`
 }
 
-type formation struct {
-	Quantity int    `json:"quantity"`
-	Size     string `json:"size"`
-}
-
 type appFile struct {
 	Name    string         `json:"name"`
 	Env     map[string]env `json:"env"`
@@ -76,13 +71,13 @@ type appFile struct {
 
 	// The following are unused variables that are still silently accepted
 	// for compatibility with Heroku app.json files.
-	IgnoredDescription string               `json:"description"`
-	IgnoredKeywords    []string             `json:"keywords"`
-	IgnoredLogo        string               `json:"logo"`
-	IgnoredRepository  string               `json:"repository"`
-	IgnoredWebsite     string               `json:"website"`
-	IgnoredStack       string               `json:"stack"`
-	IgnoredFormation   map[string]formation `json:"formation"`
+	IgnoredDescription string      `json:"description"`
+	IgnoredKeywords    []string    `json:"keywords"`
+	IgnoredLogo        string      `json:"logo"`
+	IgnoredRepository  string      `json:"repository"`
+	IgnoredWebsite     string      `json:"website"`
+	IgnoredStack       string      `json:"stack"`
+	IgnoredFormation   interface{} `json:"formation"`
 }
 
 const appJSON = `app.json`
