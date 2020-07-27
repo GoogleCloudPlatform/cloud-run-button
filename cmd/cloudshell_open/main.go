@@ -36,8 +36,6 @@ const (
 	flSubDir    = "dir"
 	flPage      = "page"
 	flContext   = "context"
-	flProject   = "project" // for automated testing
-	flRegion    = "region"  // for automated testing
 
 	reauthCredentialsWaitTimeout     = time.Minute * 2
 	reauthCredentialsPollingInterval = time.Second
@@ -70,8 +68,6 @@ func init() {
 	flags.StringVar(&opts.gitBranch, flGitBranch, "", "(optional) branch/revision to use from the git repo")
 	flags.StringVar(&opts.subDir, flSubDir, "", "(optional) sub-directory to deploy in the repo")
 	flags.StringVar(&opts.context, flContext, "", "(optional) arbitrary context")
-	flags.StringVar(&opts.project, flProject, "", "(optional) the GCP project")
-	flags.StringVar(&opts.region, flRegion, "", "(optional) the GCP region")
 
 	_ = flags.String(flPage, "", "ignored")
 }
@@ -98,8 +94,6 @@ type runOpts struct {
 	gitBranch string
 	subDir    string
 	context   string
-	region    string
-	project   string
 }
 
 func logProgress(msg, endMsg, errMsg string) func(bool) {
@@ -185,9 +179,9 @@ func run(opts runOpts) error {
 		return fmt.Errorf("error attempting to read the app.json from the cloned repository: %+v", err)
 	}
 
-	project := opts.project
+	project := os.Getenv("GOOGLE_CLOUD_PROJECT")
 
-	if opts.project == "" {
+	if project == "" {
 		var projects []string
 
 		for len(projects) == 0 {
@@ -248,7 +242,7 @@ func run(opts runOpts) error {
 		return err
 	}
 
-	region := opts.region
+	region := os.Getenv("GOOGLE_CLOUD_REGION")
 
 	if region == "" {
 		region, err = promptDeploymentRegion(ctx, project)
