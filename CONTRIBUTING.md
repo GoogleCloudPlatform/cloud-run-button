@@ -28,6 +28,8 @@
         ```
         Other `cloudshell_open` flags: `--git_branch`, `--dir`, `--context`
 
+        Env vars you can set to avoid STDIN questions: `GOOGLE_CLOUD_PROJECT` `GOOGLE_CLOUD_REGION`
+
 ## Test Cloud Run Button's Underlying Command Locally in a Container
 
 1. [Create a Service Account in a test account](https://console.cloud.google.com/iam-admin/serviceaccounts)
