@@ -67,7 +67,7 @@ func redirect(w http.ResponseWriter, req *http.Request) {
 	referer := req.Header.Get(hdrReferer)
 
 	// TODO(ahmetb): remove once https://github.community/t/chrome-85-breaks-referer/130039 is fixed
-	if referer == "https://github.com/" {
+	if referer == "https://github.com/" && repoParam == "" {
 		showRedirectForm(w, req)
 		return
 	}
