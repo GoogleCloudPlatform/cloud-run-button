@@ -8,8 +8,9 @@ import (
 	"testing"
 )
 
+// TODO(ahmetb): add POST back once https://github.community/t/chrome-85-breaks-referer/130039 is fixed
 func TestRedirect_unsupportedMethods(t *testing.T) {
-	methods := []string{"PUT", "POST", "DELETE", "OPTIONS", "UNKNOWN"}
+	methods := []string{"PUT", "DELETE", "OPTIONS", "UNKNOWN"}
 	for _, m := range methods {
 		req := httptest.NewRequest(m, "/", nil)
 
