@@ -70,7 +70,7 @@ For example, a fully populated `app.json` file looks like this:
         "memory": "512Mi",
         "cpu": "1",
         "port": "80",
-        "http2": true
+        "http2": false
     },
     "build": {
         "skip": false,
