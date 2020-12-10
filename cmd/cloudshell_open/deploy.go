@@ -84,7 +84,7 @@ func optionsToResourceRequirements(options options) *runapi.ResourceRequirements
 
 func optionsToContainerSpec(options options) *runapi.ContainerPort {
 	var containerPortName = "http1"
-	if options.Http2 != nil && *options.Http2 {
+	if options.HTTP2 != nil && *options.HTTP2 {
 		containerPortName = "h2c"
 	}
 
@@ -123,7 +123,7 @@ func newService(name, project, image string, envs map[string]string, options opt
 							Image:     image,
 							Env:       envVars,
 							Resources: optionsToResourceRequirements(options),
-							Ports: []*runapi.ContainerPort{optionsToContainerSpec(options)},
+							Ports:     []*runapi.ContainerPort{optionsToContainerSpec(options)},
 						},
 					},
 				},
