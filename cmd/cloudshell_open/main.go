@@ -440,6 +440,16 @@ func optionsToFlags(options options) []string {
 		flags = append(flags, cpuSetting)
 	}
 
+	if options.Http2 != nil && *options.Http2 == false {
+		http2Setting := "--no-use-http2"
+		flags = append(flags, http2Setting)
+	}
+
+	if options.Http2 != nil && *options.Http2 == true {
+		http2Setting := "--use-http2"
+		flags = append(flags, http2Setting)
+	}
+
 	return flags
 }
 
