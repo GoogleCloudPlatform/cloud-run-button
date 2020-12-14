@@ -96,7 +96,7 @@ func Test_parseAppFile(t *testing.T) {
 		{"wrong env type", `{"env": "foo"}`, nil, true},
 		{"wrong env value type", `{"env": {"foo":"bar"}}`, nil, true},
 		{"env not array", `{"env": []}`, nil, true},
-		{"empty env list is ok", `{"env": {}}`, &appFile{Env: map[string]env{}}, false},
+		{"empty env list is ok", `{"env": {}}`, &appFile{Env: environment{}}, false},
 		{"non-string key type in env", `{"env": {
 			1: {}
 		}}`, nil, true},
@@ -104,18 +104,29 @@ func Test_parseAppFile(t *testing.T) {
 			"KEY": {"unknown":"value"}
 		}}`, nil, true},
 		{"required is true by default", `{
-			"env": {"KEY":{}}}`, &appFile{Env: map[string]env{
-			"KEY": {Required: &tru}}}, false},
+			"env": {"KEY":{}}}`, &appFile{Env: environment{
+			Variables: []env{
+				{Name: "KEY", Required: true},
+			},
+		}}, false},
 		{"required can be set to false", `{
 			"env": {"KEY":{"required":false}}}`, &appFile{
-			Env: map[string]env{"KEY": {Required: &fals}}}, false},
+			Env: environment{
+				Variables: []env{
+					{Name: "KEY", Required: false},
+				},
+			}}, false},
 		{"required has to be bool", `{
 			"env": {"KEY":{"required": "false"}}}`, nil, true},
 		{"value has to be string", `{
 			"env": {"KEY":{"value": 100}}}`, nil, true},
 		{"generator secret", `{
-			"env": {"KEY":{"generator": "secret"}}}`, &appFile{Env: map[string]env{
-			"KEY": {Required: &tru, Generator: "secret"}}}, false},
+			"env": {"KEY":{"generator": "secret"}}}`, &appFile{
+			Env: environment{
+				Variables: []env{
+					{Name: "KEY", Required: true, Generator: "secret"},
+				},
+			}}, false},
 		{"generator secret and value", `{
 			"env": {"KEY":{"generator": "secret", "value": "asdf"}}}`, nil, true},
 		{"parses ok", `{
@@ -132,14 +143,18 @@ func Test_parseAppFile(t *testing.T) {
 			&appFile{
 				Name:    "foo",
 				Options: options{},
-				Env: map[string]env{
-					"KEY_1": {
-						Required:    &fals,
-						Description: "key 1 is cool",
-					},
-					"KEY_2": {
-						Value:    "k2",
-						Required: &tru,
+				Env: environment{
+					Variables: []env{
+						{
+							Name:        "KEY_1",
+							Required:    false,
+							Description: "key 1 is cool",
+						},
+						{
+							Name:     "KEY_2",
+							Value:    "k2",
+							Required: true,
+						},
 					},
 				}}, false},
 		{"precreate", `{
@@ -226,8 +241,14 @@ func TestGetAppFile(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	expected := appFile{Env: map[string]env{
-		"KEY": {Value: "bar", Required: &tru},
+	expected := appFile{Env: environment{
+		Variables: []env{
+			{
+				Name:     "KEY",
+				Value:    "bar",
+				Required: true,
+			},
+		},
 	}}
 	if !reflect.DeepEqual(v, expected) {
 		t.Fatalf("wrong parsed value: got=%#v, expected=%#v", v, expected)

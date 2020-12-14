@@ -268,7 +268,7 @@ func run(opts runOpts) error {
 		existingEnvVars, err = envVars(project, serviceName, region)
 	}
 
-	neededEnvs := needEnvs(appFile.Env, existingEnvVars)
+	neededEnvs := needEnvs(appFile.Env.Variables, existingEnvVars)
 
 	envs, err := promptOrGenerateEnvs(neededEnvs)
 	if err != nil {

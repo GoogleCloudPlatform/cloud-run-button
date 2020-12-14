@@ -24,14 +24,20 @@ import (
 	"path/filepath"
 
 	"github.com/fatih/color"
+	"github.com/iancoleman/orderedmap"
 
 	"github.com/AlecAivazis/survey/v2"
 )
 
+type environment struct {
+	Variables []env
+}
+
 type env struct {
+	Name        string `json:"-"`
 	Description string `json:"description"`
 	Value       string `json:"value"`
-	Required    *bool  `json:"required"`
+	Required    bool   `json:"required"`
 	Generator   string `json:"generator"`
 }
 
@@ -63,11 +69,11 @@ type hooks struct {
 }
 
 type appFile struct {
-	Name    string         `json:"name"`
-	Env     map[string]env `json:"env"`
-	Options options        `json:"options"`
-	Build   build          `json:"build"`
-	Hooks   hooks          `json:"hooks"`
+	Name    string      `json:"name"`
+	Env     environment `json:"env"`
+	Options options     `json:"options"`
+	Build   build       `json:"build"`
+	Hooks   hooks       `json:"hooks"`
 
 	// The following are unused variables that are still silently accepted
 	// for compatibility with Heroku app.json files.
@@ -81,6 +87,67 @@ type appFile struct {
 }
 
 const appJSON = `app.json`
+
+// Custom, order-preserving unmarshalling of the environment entries
+func (e *environment) UnmarshalJSON(b []byte) error {
+	envVars := orderedmap.New()
+
+	if err := json.Unmarshal(b, &envVars); err != nil {
+		return fmt.Errorf("failed to parse the 'env' of app.json: %+v", err)
+	}
+
+	keys := envVars.Keys()
+	for _, envVarName := range keys {
+		envVarValue, _ := envVars.Get(envVarName)
+
+		envVarMap, ok := envVarValue.(orderedmap.OrderedMap)
+		if !ok {
+			return fmt.Errorf("failed to parse the 'env' of app.json: expected a JSON object for the key '%s', found a string; value: '%s'", envVarName, envVarValue)
+		}
+
+		envVar := env{
+			Name:     envVarName,
+			Required: true,
+		}
+
+		for _, envVarFieldName := range envVarMap.Keys() {
+			envVarValue, _ := envVarMap.Get(envVarFieldName)
+
+			switch envVarFieldName {
+			case "description":
+				envVar.Description, ok = envVarValue.(string)
+				if !ok {
+					return fmt.Errorf("failed to parse the '%s' env of app.json: expected JSON string; found: '%T'", envVarName, envVarValue)
+				}
+			case "value":
+				envVar.Value, ok = envVarValue.(string)
+				if !ok {
+					return fmt.Errorf("failed to parse the '%s' env of app.json: expected JSON string; found: '%T'", envVarName, envVarValue)
+				}
+			case "required":
+				envVar.Required, ok = envVarValue.(bool)
+				if !ok {
+					return fmt.Errorf("failed to parse the '%s' env of app.json: expected JSON boolean; found: '%T'", envVarName, envVarValue)
+				}
+			case "generator":
+				envVar.Generator, ok = envVarValue.(string)
+				if !ok {
+					return fmt.Errorf("failed to parse the '%s' env of app.json: expected JSON string; found: '%T'", envVarName, envVarValue)
+				}
+			default:
+				return fmt.Errorf("Unexpected key '%s'", envVarFieldName)
+			}
+		}
+
+		if envVar.Generator == "secret" && envVar.Value != "" {
+			return fmt.Errorf("env var %q can't have both a value and use the secret generator", envVarName)
+		}
+
+		e.Variables = append(e.Variables, envVar)
+	}
+
+	return nil
+}
 
 // hasAppFile checks if the directory has an app.json file.
 func hasAppFile(dir string) (bool, error) {
@@ -101,21 +168,6 @@ func parseAppFile(r io.Reader) (*appFile, error) {
 	d.DisallowUnknownFields()
 	if err := d.Decode(&v); err != nil {
 		return nil, fmt.Errorf("failed to parse app.json: %+v", err)
-	}
-
-	// make "required" true by default
-	for k, env := range v.Env {
-		if env.Required == nil {
-			v := true
-			env.Required = &v
-		}
-		v.Env[k] = env
-	}
-
-	for k, env := range v.Env {
-		if env.Generator == "secret" && env.Value != "" {
-			return nil, fmt.Errorf("env var %q can't have both a value and use the secret generator", k)
-		}
 	}
 
 	return &v, nil
@@ -153,26 +205,29 @@ func rand64String() (string, error) {
 }
 
 // takes the envs defined in app.json, and the existing envs and returns the new envs that need to be prompted for
-func needEnvs(list map[string]env, existing map[string]struct{}) map[string]env {
-	for k := range list {
-		_, isPresent := existing[k]
-		if isPresent {
-			delete(list, k)
+func needEnvs(list []env, existing map[string]struct{}) []env {
+	var neededEnvs []env
+
+	for _, e := range list {
+		_, isPresent := existing[e.Name]
+		if !isPresent {
+			neededEnvs = append(neededEnvs, e)
 		}
 	}
 
-	return list
+	return neededEnvs
 }
 
-func promptOrGenerateEnvs(list map[string]env) ([]string, error) {
+func promptOrGenerateEnvs(list []env) ([]string, error) {
 	var toGenerate []string
-	var toPrompt = make(map[string]env)
+	var toPrompt []env
 
-	for k, e := range list {
+	for _, e := range list {
+		k := e.Name
 		if e.Generator == "secret" {
 			toGenerate = append(toGenerate, k)
 		} else {
-			toPrompt[k] = e
+			toPrompt = append(toPrompt, e)
 		}
 	}
 
@@ -202,7 +257,7 @@ func generateEnvs(keys []string) ([]string, error) {
 	return keys, nil
 }
 
-func promptEnv(list map[string]env) ([]string, error) {
+func promptEnv(list []env) ([]string, error) {
 	// TODO(ahmetb): remove these defers and make customizations at the
 	// individual prompt-level once survey lib allows non-global settings.
 
@@ -210,7 +265,8 @@ func promptEnv(list map[string]env) ([]string, error) {
 	// TODO(ahmetb): we should ideally use an ordered map structure for Env
 	// field and prompt the questions as they appear in the app.json file as
 	// opposed to random order we do here.
-	for k, e := range list {
+	for _, e := range list {
+		k := e.Name
 		var resp string
 
 		if err := survey.AskOne(&survey.Input{

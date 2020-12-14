@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"math/rand"
+	"strconv"
 	"strings"
 	"time"
 
@@ -143,7 +144,7 @@ func generateRevisionName(name string, objectGeneration int64) string {
 	out := name + "-" + num + "-"
 	r := rand.New(rand.NewSource(time.Now().UnixNano()))
 	for i := 0; i < 3; i++ {
-		out += string(int('a') + r.Intn(26))
+		out += strconv.Itoa(int('a') + r.Intn(26))
 	}
 	return out
 }
