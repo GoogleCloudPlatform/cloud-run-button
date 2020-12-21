@@ -31,11 +31,12 @@ import (
 )
 
 const (
-	flRepoURL   = "repo_url"
-	flGitBranch = "git_branch"
-	flSubDir    = "dir"
-	flPage      = "page"
-	flContext   = "context"
+	flRepoURL       = "repo_url"
+	flGitBranch     = "git_branch"
+	flSubDir        = "dir"
+	flPage          = "page"
+	flForceNewClone = "force_new_clone"
+	flContext       = "context"
 
 	reauthCredentialsWaitTimeout     = time.Minute * 2
 	reauthCredentialsPollingInterval = time.Second
@@ -70,6 +71,7 @@ func init() {
 	flags.StringVar(&opts.context, flContext, "", "(optional) arbitrary context")
 
 	_ = flags.String(flPage, "", "ignored")
+	_ = flags.Bool(flForceNewClone, false, "ignored")
 }
 func main() {
 	usage := flags.Usage
