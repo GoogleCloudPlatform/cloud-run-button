@@ -405,6 +405,8 @@ func run(opts runOpts) error {
 		return err
 	}
 
+	hookEnvs = append(hookEnvs, fmt.Sprintf("SERVICE_URL=%s", url))
+
 	if existingService == nil {
 		err = runScripts(appDir, appFile.Hooks.PostCreate.Commands, hookEnvs)
 		if err != nil {
