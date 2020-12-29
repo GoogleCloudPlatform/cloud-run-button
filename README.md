@@ -138,7 +138,7 @@ Reference:
     - `commands`: _(array of strings)_ The list of commands to run
   - `precreate`: _(optional)_ Runs the specified commands before the service has been created
     - `commands`: _(array of strings)_ The list of commands to run
-  - `postcreate`: _(optional)_ Runs the specified commands after the service has been created
+  - `postcreate`: _(optional)_ Runs the specified commands after the service has been created; the `SERVICE_URL` environment variable provides the URL of the deployed Cloud Run service
     - `commands`: _(array of strings)_ The list of commands to run
 
 ### Notes
