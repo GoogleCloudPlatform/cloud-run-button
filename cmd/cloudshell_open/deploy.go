@@ -155,7 +155,7 @@ func generateRevisionName(name string, objectGeneration int64) string {
 	out := name + "-" + num + "-"
 	r := rand.New(rand.NewSource(time.Now().UnixNano()))
 	for i := 0; i < 3; i++ {
-		out += string(int('a') + r.Intn(26))
+		out += string(rune(int('a') + r.Intn(26)))
 	}
 	return out
 }
