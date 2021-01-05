@@ -106,7 +106,7 @@ func TestGitCheckout(t *testing.T) {
 	run(t, "git", "commit", "--allow-empty", "--message", "initial commit")
 	run(t, "git", "branch", "foo")
 
-	if err := gitCheckout(tmpDir, "master"); err != nil {
+	if err := gitCheckout(tmpDir, "main"); err != nil {
 		t.Fatal(err)
 	}
 	if err := gitCheckout(tmpDir, "foo"); err != nil {

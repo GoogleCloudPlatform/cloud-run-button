@@ -444,6 +444,14 @@ func optionsToFlags(options options) []string {
 		flags = append(flags, cpuSetting)
 	}
 
+	if options.HTTP2 != nil {
+		if *options.HTTP2 == false {
+			flags = append(flags, "--no-use-http2")
+		} else {
+			flags = append(flags, "--use-http2")
+		}
+	}
+
 	return flags
 }
 

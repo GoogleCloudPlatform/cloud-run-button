@@ -69,7 +69,8 @@ For example, a fully populated `app.json` file looks like this:
         "allow-unauthenticated": false,
         "memory": "512Mi",
         "cpu": "1",
-        "port": "80"
+        "port": "80",
+        "http2": false
     },
     "build": {
         "skip": false,
@@ -119,7 +120,8 @@ Reference:
   - `memory`: _(optional)_ memory for each instance
   - `cpu`: _(optional)_ cpu for each instance
   - `port`: _(optional)_ if your application doesn't respect the PORT environment
-    variable provided by Cloud Run, specify the port number it listens on.
+    variable provided by Cloud Run, specify the port number it listens on
+  - `http2`: _(optional)_ use http2 for the connection
 - `build`: _(optional)_ Build configuration
   - `skip`: _(optional, default: `false`)_ skips the built-in build methods (`docker build`, `Maven Jib`, and
  `buildpacks`), but still allows for `prebuild` and `postbuild` hooks to be run in order to build the container image

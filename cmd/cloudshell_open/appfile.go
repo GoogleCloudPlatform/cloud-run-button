@@ -40,6 +40,7 @@ type options struct {
 	Memory               string `json:"memory"`
 	CPU                  string `json:"cpu"`
 	Port                 int    `json:"port"`
+	HTTP2                *bool  `json:"http2"`
 }
 
 type hook struct {

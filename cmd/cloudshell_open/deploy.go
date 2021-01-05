@@ -34,7 +34,7 @@ func deploy(project, name, image, region string, envs []string, options options)
 	svc, err := getService(project, name, region)
 	if err == nil {
 		// existing service
-		svc = patchService(svc, envVars, image)
+		svc = patchService(svc, envVars, image, options)
 		_, err = client.Namespaces.Services.ReplaceService("namespaces/"+project+"/services/"+name, svc).Do()
 		if err != nil {
 			if e, ok := err.(*googleapi.Error); ok {
@@ -82,6 +82,20 @@ func optionsToResourceRequirements(options options) *runapi.ResourceRequirements
 	return &runapi.ResourceRequirements{Limits: limits}
 }
 
+func optionsToContainerSpec(options options) *runapi.ContainerPort {
+	var containerPortName = "http1"
+	if options.HTTP2 != nil && *options.HTTP2 {
+		containerPortName = "h2c"
+	}
+
+	var containerPort = 8080
+	if options.Port > 0 {
+		containerPort = options.Port
+	}
+
+	return &runapi.ContainerPort{ContainerPort: int64(containerPort), Name: containerPortName}
+}
+
 // newService initializes a new Knative Service object with given properties.
 func newService(name, project, image string, envs map[string]string, options options) *runapi.Service {
 	var envVars []*runapi.EnvVar
@@ -109,6 +123,7 @@ func newService(name, project, image string, envs map[string]string, options opt
 							Image:     image,
 							Env:       envVars,
 							Resources: optionsToResourceRequirements(options),
+							Ports:     []*runapi.ContainerPort{optionsToContainerSpec(options)},
 						},
 					},
 				},
@@ -117,10 +132,7 @@ func newService(name, project, image string, envs map[string]string, options opt
 			},
 		},
 	}
-	if options.Port > 0 {
-		svc.Spec.Template.Spec.Containers[0].Ports = append(svc.Spec.Template.Spec.Containers[0].Ports,
-			&runapi.ContainerPort{ContainerPort: int64(options.Port)})
-	}
+
 	applyMeta(svc.Metadata, image)
 	applyMeta(svc.Spec.Template.Metadata, image)
 
@@ -143,18 +155,21 @@ func generateRevisionName(name string, objectGeneration int64) string {
 	out := name + "-" + num + "-"
 	r := rand.New(rand.NewSource(time.Now().UnixNano()))
 	for i := 0; i < 3; i++ {
-		out += string(int('a') + r.Intn(26))
+		out += string(rune(int('a') + r.Intn(26)))
 	}
 	return out
 }
 
 // patchService modifies an existing Service with requested changes.
-func patchService(svc *runapi.Service, envs map[string]string, image string) *runapi.Service {
+func patchService(svc *runapi.Service, envs map[string]string, image string, options options) *runapi.Service {
 	// merge env vars
 	svc.Spec.Template.Spec.Containers[0].Env = mergeEnvs(svc.Spec.Template.Spec.Containers[0].Env, envs)
 
 	// update container image
 	svc.Spec.Template.Spec.Containers[0].Image = image
+
+	// update container port
+	svc.Spec.Template.Spec.Containers[0].Ports[0] = optionsToContainerSpec(options)
 
 	// apply metadata annotations
 	applyMeta(svc.Metadata, image)
