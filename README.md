@@ -63,6 +63,10 @@ For example, a fully populated `app.json` file looks like this:
         },
         "APP_SECRET": {
             "generator": "secret"
+        },
+        "ORDERED_ENV": {
+            "description": "control the order env variables are prompted",
+            "order": 100
         }
     },
     "options": {
@@ -115,6 +119,9 @@ Reference:
   - `required`, _(optional, default: `true`)_ indicates if they user must provide
     a value for this variable.
   - `generator`, _(optional)_ use a generator for the value, currently only support `secret`
+  - `order`, _(optional)_ if specified, used to indicate the order in which the
+    variable is prompted to the user. If some variables specify this and some
+    don't, then the unspecified ones are prompted last.
 - `options`: _(optional)_ Options when deploying the service
   - `allow-unauthenticated`: _(optional, default: `true`)_ allow unauthenticated requests
   - `memory`: _(optional)_ memory for each instance

@@ -22,6 +22,7 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+	"sort"
 
 	"github.com/fatih/color"
 
@@ -33,6 +34,7 @@ type env struct {
 	Value       string `json:"value"`
 	Required    *bool  `json:"required"`
 	Generator   string `json:"generator"`
+	Order       *int   `json:"order"`
 }
 
 type options struct {
@@ -191,7 +193,6 @@ func promptOrGenerateEnvs(list map[string]env) ([]string, error) {
 }
 
 func generateEnvs(keys []string) ([]string, error) {
-
 	for i, key := range keys {
 		resp, err := rand64String()
 		if err != nil {
@@ -203,15 +204,50 @@ func generateEnvs(keys []string) ([]string, error) {
 	return keys, nil
 }
 
-func promptEnv(list map[string]env) ([]string, error) {
-	// TODO(ahmetb): remove these defers and make customizations at the
-	// individual prompt-level once survey lib allows non-global settings.
+type envKeyValuePair struct {
+	k string
+	v env
+}
 
+type envKeyValuePairs []envKeyValuePair
+
+func (e envKeyValuePairs) Len() int { return len(e) }
+
+func (e envKeyValuePairs) Swap(i, j int) {
+	e[i], e[j] = e[j], e[i]
+}
+
+func (e envKeyValuePairs) Less(i, j int) bool {
+	// if env.Order is unspecified, it should appear less.
+	// otherwise, less values show earlier.
+	if e[i].v.Order == nil {
+		return false
+	}
+	if e[j].v.Order == nil {
+		return true
+	}
+	return *e[i].v.Order < *e[j].v.Order
+}
+
+func sortedEnvs(envs map[string]env) []string {
+	var v envKeyValuePairs
+	for key, value := range envs {
+		v = append(v, envKeyValuePair{key, value})
+	}
+	sort.Sort(v)
+	var keys []string
+	for _, vv := range v {
+		keys = append(keys, vv.k)
+	}
+	return keys
+}
+
+func promptEnv(list map[string]env) ([]string, error) {
 	var out []string
-	// TODO(ahmetb): we should ideally use an ordered map structure for Env
-	// field and prompt the questions as they appear in the app.json file as
-	// opposed to random order we do here.
-	for k, e := range list {
+	sortedKeys := sortedEnvs(list)
+
+	for _, k := range sortedKeys {
+		e := list[k]
 		var resp string
 
 		if err := survey.AskOne(&survey.Input{
