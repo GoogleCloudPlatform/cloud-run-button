@@ -233,3 +233,25 @@ func TestGetAppFile(t *testing.T) {
 		t.Fatalf("wrong parsed value: got=%#v, expected=%#v", v, expected)
 	}
 }
+
+func Test_sortedEnvs(t *testing.T) {
+	envs := map[string]env{
+		"NIL_ORDER": {},
+		"ORDER_100": {Order: mkInt(100)},
+		"ORDER_0":   {Order: mkInt(0)},
+		"ORDER_-10": {Order: mkInt(-10)},
+		"ORDER_50":  {Order: mkInt(50)},
+	}
+	got := sortedEnvs(envs)
+	expected := []string{
+		"ORDER_-10", "ORDER_0", "ORDER_50", "ORDER_100", "NIL_ORDER",
+	}
+
+	if !reflect.DeepEqual(got, expected) {
+		t.Fatalf("sorted envs in wrong order: expected:%v\ngot=%v", expected, got)
+	}
+}
+
+func mkInt(i int) *int {
+	return &i
+}
