@@ -16,6 +16,7 @@ package main
 
 import (
 	"fmt"
+	"net"
 	"os/exec"
 	"regexp"
 	"strings"
@@ -75,6 +76,30 @@ func gitCheckout(dir, rev string) error {
 	b, err := cmd.CombinedOutput()
 	if err != nil {
 		return fmt.Errorf("git checkout failed: %+v, output:\n%s", err, string(b))
+	}
+	return nil
+}
+
+// signalRepoCloneStatus signals to the cloudshell host that the repo is
+// cloned or not (bug/178009327).
+func signalRepoCloneStatus(success bool) error {
+	c, err := net.Dial("tcp", net.JoinHostPort("localhost", "8998"))
+	if err != nil {
+		return fmt.Errorf("failed to connect to cloudshell host: %w", err)
+	}
+	msgFmt := `[null,null,null,[null,null,null,null,[%d]]]`
+	var msg string
+	if success {
+		msg = fmt.Sprintf(msgFmt, 0)
+	} else {
+		msg = fmt.Sprintf(msgFmt, 1)
+	}
+	msg = fmt.Sprintf("%d\n%s", len(msg), msg)
+	if _, err := c.Write([]byte(msg)); err != nil {
+		return fmt.Errorf("failed to send data to cloudshell host: %w", nil)
+	}
+	if err := c.Close(); err != nil {
+		return fmt.Errorf("failed to close conn to cloudshell host: %w", nil)
 	}
 	return nil
 }
