@@ -151,6 +151,13 @@ func run(opts runOpts) error {
 		fmt.Sprintf("Cloned git repository %s.", highlight(repo)),
 		fmt.Sprintf("Failed to clone git repository %s", highlight(repo)))
 	cloneDir, err := handleRepo(repo)
+	if trusted && os.Getenv("SKIP_CLONE_REPORTING") == "" {
+		// TODO(ahmetb) had to introduce SKIP_CLONE_REPORTING env var here
+		// to skip connecting to :8998 while testing locally if this var is set.
+		if err := signalRepoCloneStatus(err == nil); err != nil {
+			return err
+		}
+	}
 	end(err == nil)
 	if err != nil {
 		return err
