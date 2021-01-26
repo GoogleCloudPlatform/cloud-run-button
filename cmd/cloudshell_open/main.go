@@ -374,11 +374,16 @@ func run(opts runOpts) error {
 		}
 	}
 
+	deployCommand := "\tgcloud run deploy %s"
+	if appFile.Options.HTTP2 != nil && *appFile.Options.HTTP2 == true {
+		deployCommand = "\tgcloud alpha run deploy %s"
+	}
+
 	optionsFlags := optionsToFlags(appFile.Options)
 
 	serviceLabel := highlight(serviceName)
 	fmt.Println(infoPrefix + " FYI, running the following command:")
-	cmdColor.Printf("\tgcloud run deploy %s", parameter(serviceName))
+	cmdColor.Printf(deployCommand, parameter(serviceName))
 	cmdColor.Println("\\")
 	cmdColor.Printf("\t  --project=%s", parameter(project))
 	cmdColor.Println("\\")
