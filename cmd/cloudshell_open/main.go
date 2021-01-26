@@ -375,8 +375,10 @@ func run(opts runOpts) error {
 	}
 
 	deployCommand := "\tgcloud run deploy %s"
+
+	// TODO remove when --use-http2 graduates to GA
 	if appFile.Options.HTTP2 != nil && *appFile.Options.HTTP2 == true {
-		deployCommand = "\tgcloud alpha run deploy %s"
+		deployCommand = "\tgcloud beta run deploy %s"
 	}
 
 	optionsFlags := optionsToFlags(appFile.Options)
