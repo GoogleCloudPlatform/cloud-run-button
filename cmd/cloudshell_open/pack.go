@@ -19,8 +19,12 @@ import (
 	"os/exec"
 )
 
-func packBuild(dir, image, builderImage string) error {
-	cmd := exec.Command("pack", "build", "--quiet", "--builder", builderImage, "--path", dir, image)
+func packBuild(dir, image, builderImage string, builderEnv []string) error {
+	args := []string{"build", image, "--quiet", "--builder", builderImage, "--path", dir}
+	if len(builderEnv) > 0 {
+		args = append(args, builderEnv...)
+	}
+	cmd := exec.Command("pack", args...)
 	b, err := cmd.CombinedOutput()
 	if err != nil {
 		return fmt.Errorf("pack build failed: %v, output:\n%s", err, string(b))

@@ -87,6 +87,42 @@ func Test_parseAppFile(t *testing.T) {
 		want    *appFile
 		wantErr bool
 	}{
+		{"buildpacks with env", `{
+			"build": {
+				"skip": false,
+				"buildpacks": {
+					"builder": "some/builderimage",
+					"env": [
+						"GOOGLE_ENTRYPOINT=\"gunicorn -p :8080 main:app\"",
+						"GOOGLE_BUILDABLE=myapp"
+					]
+				}
+			}}`, &appFile{
+			Build: build{
+				Skip: &fals,
+				Buildpacks: buildpacks{
+					Builder: "some/builderimage",
+					Env: []string{
+						`GOOGLE_ENTRYPOINT="gunicorn -p :8080 main:app"`,
+						"GOOGLE_BUILDABLE=myapp",
+					},
+				},
+			},
+		}, false},
+		{"buildbapck without env", `{
+			"build": {
+				"skip": false,
+				"buildpacks": {
+					"builder": "some/builderimage"
+				}
+			}}`, &appFile{
+			Build: build{
+				Skip: &fals,
+				Buildpacks: buildpacks{
+					Builder: "some/builderimage",
+				},
+			},
+		}, false},
 		{"empty json is EOF", ``, nil, true},
 		{"empty object ok", `{}`, &appFile{}, false},
 		{"bad object at root", `1`, nil, true},

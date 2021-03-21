@@ -309,11 +309,18 @@ func run(opts runOpts) error {
 	skipJib := false
 
 	builderImage := "gcr.io/buildpacks/builder:v1"
+	builderEnv := []string{}
 
 	if appFile.Build.Buildpacks.Builder != "" {
 		skipDocker = true
 		skipJib = true
 		builderImage = appFile.Build.Buildpacks.Builder
+	}
+
+	if len(appFile.Build.Buildpacks.Env) > 0 {
+		for _, v := range appFile.Build.Buildpacks.Env {
+			builderEnv = append(builderEnv, "--env", v)
+		}
 	}
 
 	dockerFileExists, _ := dockerFileExists(appDir)
@@ -340,8 +347,20 @@ func run(opts runOpts) error {
 		} else {
 			fmt.Println(infoPrefix + " Attempting to build this application with Cloud Native Buildpacks (buildpacks.io)...")
 			fmt.Println(infoPrefix + " FYI, running the following command:")
-			cmdColor.Printf("\tpack build %s --path %s --builder %s\n", parameter(image), parameter(appDir), parameter(builderImage))
-			err = packBuild(appDir, image, builderImage)
+			if len(builderEnv) == 0 {
+				cmdColor.Printf("\tpack build %s --path %s --builder %s\n", parameter(image), parameter(appDir), parameter(builderImage))
+			} else {
+				envParameterFn := func(array []string) string {
+					tmp := make([]string, len(array))
+					copy(tmp, array)
+					for i := 1; i < len(tmp); i += 2 {
+						tmp[i] = parameter(tmp[i])
+					}
+					return strings.Join(tmp, " ")
+				}
+				cmdColor.Printf("\tpack build %s --path %s --builder %s %s\n", parameter(image), parameter(appDir), parameter(builderImage), envParameterFn(builderEnv))
+			}
+			err = packBuild(appDir, image, builderImage, builderEnv)
 		}
 
 		end(err == nil)

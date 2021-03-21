@@ -79,7 +79,11 @@ For example, a fully populated `app.json` file looks like this:
     "build": {
         "skip": false,
         "buildpacks": {
-            "builder": "some/builderimage"
+            "builder": "some/builderimage",
+            "env": [
+                "GOOGLE_BUILDABLE=myapp",
+                "GOOGLE_RUNTIME_VERSION=1.14.6"
+            ]
         }
     },
     "hooks": {
@@ -135,6 +139,7 @@ Reference:
  manually
   - `buildpacks`: _(optional)_ buildpacks config
     - `builder`: _(optional, default: `gcr.io/buildpacks/builder:v1`)_ overrides the buildpack builder image
+    - `env`: _(optional)_ environment variables that are set at build time
 - `hooks`: _(optional)_ Run commands in separate bash shells with the environment variables configured for the
   application and environment variables `GOOGLE_CLOUD_PROJECT` (Google Cloud project), `GOOGLE_CLOUD_REGION`
   (selected Google Cloud Region), `K_SERVICE` (Cloud Run service name), `IMAGE_URL` (container image URL), `APP_DIR`

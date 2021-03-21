@@ -50,7 +50,8 @@ type hook struct {
 }
 
 type buildpacks struct {
-	Builder string `json:"builder"`
+	Builder string   `json:"builder"`
+	Env     []string `json:"env"`
 }
 
 type build struct {
