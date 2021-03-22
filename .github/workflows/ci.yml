@@ -4,6 +4,10 @@ jobs:
   cloudshell_open:
     runs-on: ubuntu-latest
     steps:
+    - name: Free disk space
+      run: |
+        docker rmi $(docker image ls -aq)
+        df -h
     - uses: actions/checkout@master
     - uses: actions/setup-go@v1
       with:
