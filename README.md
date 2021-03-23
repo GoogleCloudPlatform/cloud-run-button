@@ -133,7 +133,7 @@ Reference:
   - `skip`: _(optional, default: `false`)_ skips the built-in build methods (`docker build`, `Maven Jib`, and
  `buildpacks`), but still allows for `prebuild` and `postbuild` hooks to be run in order to build the container image
  manually
-  - `buildpacks`: _(optional)_ buildpacks config
+  - `buildpacks`: _(optional)_ buildpacks config (Note: Additional Buildpack config can be specified using a `project.toml` file. [See the spec for details](https://buildpacks.io/docs/reference/config/project-descriptor/).)
     - `builder`: _(optional, default: `gcr.io/buildpacks/builder:v1`)_ overrides the buildpack builder image
 - `hooks`: _(optional)_ Run commands in separate bash shells with the environment variables configured for the
   application and environment variables `GOOGLE_CLOUD_PROJECT` (Google Cloud project), `GOOGLE_CLOUD_REGION`
