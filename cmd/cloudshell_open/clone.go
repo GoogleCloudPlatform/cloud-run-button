@@ -90,9 +90,9 @@ func signalRepoCloneStatus(success bool) error {
 	msgFmt := `[null,null,null,[null,null,null,null,[%d]]]`
 	var msg string
 	if success {
-		msg = fmt.Sprintf(msgFmt, 0)
-	} else {
 		msg = fmt.Sprintf(msgFmt, 1)
+	} else {
+		msg = fmt.Sprintf(msgFmt, 0)
 	}
 	msg = fmt.Sprintf("%d\n%s", len(msg), msg)
 	if _, err := c.Write([]byte(msg)); err != nil {
