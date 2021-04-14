@@ -42,7 +42,9 @@ func listProjects() ([]string, error) {
 	var out []string
 	if err := client.Projects.List().PageSize(1000).Pages(context.TODO(), func(resp *cloudresourcemanager.ListProjectsResponse) error {
 		for _, p := range resp.Projects {
-			out = append(out, p.ProjectId)
+			if p.LifecycleState == "ACTIVE" {
+				out = append(out, p.ProjectId)
+			}
 		}
 		return nil
 	}); err != nil {
