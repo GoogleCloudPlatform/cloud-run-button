@@ -43,7 +43,7 @@ const (
 	reauthCredentialsWaitTimeout     = time.Minute * 2
 	reauthCredentialsPollingInterval = time.Second
 
-	instrumentlessEvent = "cloudrunbutton"
+	instrumentlessEvent = "crbutton"
 )
 
 var (
