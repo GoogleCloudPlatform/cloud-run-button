@@ -18,13 +18,11 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"io/ioutil"
-
 	"net/http"
 )
 
 type Coupon struct {
-	Url string `json:"url"`
+	URL string `json:"url"`
 }
 
 func GetCoupon(event string, bearerToken string) (*Coupon, error) {
@@ -50,15 +48,10 @@ func GetCoupon(event string, bearerToken string) (*Coupon, error) {
 		defer res.Body.Close()
 	}
 
-	body, err := ioutil.ReadAll(res.Body)
-	if err != nil {
-		return nil, err
-	}
-
 	coupon := Coupon{}
-	err = json.Unmarshal(body, &coupon)
+	err = json.NewDecoder(res.Body).Decode(&coupon)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("could not get a coupon: %v", err)
 	}
 
 	return &coupon, nil

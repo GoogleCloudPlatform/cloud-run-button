@@ -215,7 +215,7 @@ func run(opts runOpts) error {
 				fmt.Print(errorPrefix+" "+
 					warningLabel.Sprint("You don't have any GCP projects to deploy into!")+
 					"\n  1. Setup project using a starter coupon:"+
-					"\n     "+linkLabel.Sprint(coupon.Url),
+					"\n     "+linkLabel.Sprint(coupon.URL),
 					"\n  2. Once you're done, press "+parameterLabel.Sprint("Enter")+" to continue: ")
 				if _, err := bufio.NewReader(os.Stdin).ReadBytes('\n'); err != nil {
 					return err
@@ -243,7 +243,7 @@ func run(opts runOpts) error {
 		fmt.Print(errorPrefix+" "+
 			warningLabel.Sprintf("Project '%s' does not have an active billing account!", project)+
 			"\n  1. Apply a starter coupon:"+
-			"\n     "+linkLabel.Sprint(coupon.Url),
+			"\n     "+linkLabel.Sprint(coupon.URL),
 			"\n  2. Link the billing account to the project:"+
 				"\n     "+linkLabel.Sprintf("https://console.cloud.google.com/billing?project=%s", project),
 			"\n  3. Once you're done, press "+parameterLabel.Sprint("Enter")+" to continue: ")
@@ -572,12 +572,12 @@ func instrumentlessCoupon() (*instrumentless.Coupon, error) {
 
 	creds, err := transport.Creds(ctx)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("could not get user credentials: %v", err)
 	}
 
 	token, err := creds.TokenSource.Token()
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("could not get an auth token: %v", err)
 	}
 
 	return instrumentless.GetCoupon(instrumentlessEvent, token.AccessToken)

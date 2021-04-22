@@ -37,6 +37,6 @@ func main() {
 		os.Exit(1)
 	}
 
-	fmt.Printf("Got coupon: %s\n", coupon.Url)
+	fmt.Printf("Got coupon: %s\n", coupon.URL)
 
 }
