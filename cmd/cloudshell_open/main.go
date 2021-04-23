@@ -44,6 +44,7 @@ const (
 	reauthCredentialsWaitTimeout     = time.Minute * 2
 	reauthCredentialsPollingInterval = time.Second
 
+	billingCreateURL    = "https://console.cloud.google.com/billing/create"
 	instrumentlessEvent = "crbutton"
 )
 
@@ -257,7 +258,13 @@ func run(opts runOpts) error {
 		if !useExisting {
 			err := promptInstrumentless()
 			if err != nil {
-				return err
+				fmt.Println(infoPrefix + " Create a new billing account:")
+				fmt.Println("  " + linkLabel.Sprint(billingCreateURL))
+				fmt.Println(questionPrefix + " " + "Once you're done, press " + parameterLabel.Sprint("Enter") + " to continue: ")
+
+				if _, err := bufio.NewReader(os.Stdin).ReadBytes('\n'); err != nil {
+					return err
+				}
 			}
 		}
 
