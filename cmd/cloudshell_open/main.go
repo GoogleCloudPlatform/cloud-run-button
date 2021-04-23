@@ -20,6 +20,9 @@ import (
 	"errors"
 	"flag"
 	"fmt"
+	"github.com/AlecAivazis/survey/v2"
+	"github.com/GoogleCloudPlatform/cloud-run-button/cmd/instrumentless"
+	"google.golang.org/api/transport"
 	"os"
 	"path/filepath"
 	"strings"
@@ -41,7 +44,8 @@ const (
 	reauthCredentialsWaitTimeout     = time.Minute * 2
 	reauthCredentialsPollingInterval = time.Second
 
-	projectCreateURL = "https://console.cloud.google.com/cloud-resource-manager"
+	billingCreateURL    = "https://console.cloud.google.com/billing/create"
+	instrumentlessEvent = "crbutton"
 )
 
 var (
@@ -205,11 +209,16 @@ func run(opts runOpts) error {
 			}
 
 			if len(projects) == 0 {
+				coupon, err := instrumentlessCoupon()
+				if err != nil {
+					return fmt.Errorf("could not get instrumentless coupon: %v", err)
+				}
+
 				fmt.Print(errorPrefix+" "+
 					warningLabel.Sprint("You don't have any GCP projects to deploy into!")+
-					"\n  1. Visit "+linkLabel.Sprint(projectCreateURL),
-					"\n  2. Create a new GCP project with a billing account",
-					"\n  3. Once you're done, press "+parameterLabel.Sprint("Enter")+" to continue: ")
+					"\n  1. Setup project using a starter coupon:"+
+					"\n     "+linkLabel.Sprint(coupon.URL),
+					"\n  2. Once you're done, press "+parameterLabel.Sprint("Enter")+" to continue: ")
 				if _, err := bufio.NewReader(os.Stdin).ReadBytes('\n'); err != nil {
 					return err
 				}
@@ -228,14 +237,48 @@ func run(opts runOpts) error {
 	}
 
 	if err := waitForBilling(project, func(p string) error {
-		fmt.Print(errorPrefix+" "+
-			warningLabel.Sprint("GCP project you chose does not have an active billing account!")+
-			"\n  1. Visit "+linkLabel.Sprint(projectCreateURL),
-			"\n  2. Associate a billing account for project "+parameterLabel.Sprint(p),
-			"\n  3. Once you're done, press "+parameterLabel.Sprint("Enter")+" to continue: ")
+		projectLabel := color.New(color.Bold, color.FgHiCyan).Sprint(project)
+
+		fmt.Println(fmt.Sprintf(errorPrefix+" Project %s does not have an active billing account!", projectLabel))
+
+		billingAccounts, err := billingAccounts()
+		if err != nil {
+			return fmt.Errorf("could not get billing accounts: %v", err)
+		}
+
+		useExisting := false
+
+		if len(billingAccounts) > 0 {
+			useExisting, err = prompUseExistingBillingAccount(project)
+			if err != nil {
+				return err
+			}
+		}
+
+		if !useExisting {
+			err := promptInstrumentless()
+			if err != nil {
+				fmt.Println(infoPrefix + " Create a new billing account:")
+				fmt.Println("  " + linkLabel.Sprint(billingCreateURL))
+				fmt.Println(questionPrefix + " " + "Once you're done, press " + parameterLabel.Sprint("Enter") + " to continue: ")
+
+				if _, err := bufio.NewReader(os.Stdin).ReadBytes('\n'); err != nil {
+					return err
+				}
+			}
+		}
+
+		fmt.Println(infoPrefix + " Link the billing account to the project:" +
+			"\n  " + linkLabel.Sprintf("https://console.cloud.google.com/billing?project=%s", project))
+
+		fmt.Println(questionPrefix + " " + "Once you're done, press " + parameterLabel.Sprint("Enter") + " to continue: ")
+
 		if _, err := bufio.NewReader(os.Stdin).ReadBytes('\n'); err != nil {
 			return err
 		}
+
+		// TODO(jamesward) automatically set billing account on project
+
 		return nil
 	}); err != nil {
 		return err
@@ -548,4 +591,52 @@ func isSubPath(a, b string) (bool, error) {
 		return false, fmt.Errorf("failed to calculate relative path: %v", err)
 	}
 	return !strings.HasPrefix(v, ".."+string(os.PathSeparator)), nil
+}
+
+func instrumentlessCoupon() (*instrumentless.Coupon, error) {
+	ctx := context.TODO()
+
+	creds, err := transport.Creds(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("could not get user credentials: %v", err)
+	}
+
+	token, err := creds.TokenSource.Token()
+	if err != nil {
+		return nil, fmt.Errorf("could not get an auth token: %v", err)
+	}
+
+	return instrumentless.GetCoupon(instrumentlessEvent, token.AccessToken)
+}
+
+func promptInstrumentless() error {
+	coupon, err := instrumentlessCoupon()
+	if err != nil {
+		return fmt.Errorf("could not get instrumentless coupon: %v", err)
+	}
+
+	fmt.Println(infoPrefix + " Apply a starter coupon to create a billing account:" +
+		"\n  " + linkLabel.Sprint(coupon.URL))
+
+	fmt.Println(questionPrefix + " Once you're done, press " + parameterLabel.Sprint("Enter") + " to continue: ")
+
+	if _, err := bufio.NewReader(os.Stdin).ReadBytes('\n'); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func prompUseExistingBillingAccount(project string) (bool, error) {
+	useExisting := false
+
+	projectLabel := color.New(color.Bold, color.FgHiCyan).Sprint(project)
+
+	if err := survey.AskOne(&survey.Confirm{
+		Default: false,
+		Message: fmt.Sprintf("Would you like to use an existing billing account with project %s?", projectLabel),
+	}, &useExisting, surveyIconOpts); err != nil {
+		return false, fmt.Errorf("could not prompt for confirmation %+v", err)
+	}
+	return useExisting, nil
 }

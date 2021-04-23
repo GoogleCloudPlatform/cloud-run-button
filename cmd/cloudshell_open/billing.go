@@ -34,3 +34,24 @@ func checkBillingEnabled(projectID string) (bool, error) {
 	}
 	return bo.BillingEnabled, nil
 }
+
+func billingAccounts() ([]cloudbilling.BillingAccount, error) {
+	var out []cloudbilling.BillingAccount
+
+	client, err := cloudbilling.NewService(context.TODO())
+	if err != nil {
+		return nil, fmt.Errorf("failed to initialize cloud billing client: %w", err)
+	}
+	billingAccounts, err := client.BillingAccounts.List().Context(context.TODO()).Do()
+	if err != nil {
+		return nil, fmt.Errorf("failed to query billing accounts: %w", err)
+	}
+
+	for _, p := range billingAccounts.BillingAccounts {
+		if p.Open {
+			out = append(out, *p)
+		}
+	}
+
+	return out, nil
+}

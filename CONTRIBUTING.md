@@ -61,6 +61,13 @@
       --repo_url=https://github.com/GoogleCloudPlatform/cloud-run-hello.git"
     ```
 
+## Test Instrumentless
+
+Test getting a coupon from the instrumentless API:
+```
+go run ./cmd/instrumentless_test YOUR_EVENT $(gcloud auth print-access-token)
+```
+
 ## Contributor License Agreement
 
 Contributions to this project must be accompanied by a Contributor License
