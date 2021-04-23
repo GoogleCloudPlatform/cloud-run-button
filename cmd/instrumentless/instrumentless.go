@@ -51,7 +51,7 @@ func GetCoupon(event string, bearerToken string) (*Coupon, error) {
 	coupon := Coupon{}
 	err = json.NewDecoder(res.Body).Decode(&coupon)
 	if err != nil {
-		return nil, fmt.Errorf("could not get a coupon: %v", err)
+		return nil, fmt.Errorf("failed to read and parse the response: %v", err)
 	}
 
 	return &coupon, nil

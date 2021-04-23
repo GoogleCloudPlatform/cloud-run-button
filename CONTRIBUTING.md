@@ -63,10 +63,9 @@
 
 ## Test Instrumentless
 
+Test getting a coupon from the instrumentless API:
 ```
-go build -o /tmp/instrumentless_test ./cmd/instrumentless_test
-
-/tmp/instrumentless_test YOUR_EVENT $(gcloud auth print-access-token)
+go run ./cmd/instrumentless_test YOUR_EVENT $(gcloud auth print-access-token)
 ```
 
 ## Contributor License Agreement
