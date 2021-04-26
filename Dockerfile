@@ -1,4 +1,6 @@
-FROM golang:1.14-alpine AS build
+# Note that we use the golang version for some analytics
+# so contact jamesward to change
+FROM golang:1.14.12-alpine AS build
 RUN apk add --no-cache git
 WORKDIR /src
 COPY go.mod go.sum ./
