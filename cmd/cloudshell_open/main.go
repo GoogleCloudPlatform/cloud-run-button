@@ -45,6 +45,7 @@ const (
 	reauthCredentialsPollingInterval = time.Second
 
 	billingCreateURL    = "https://console.cloud.google.com/billing/create"
+	trygcpURL           = "https://console.cloud.google.com/trygcp"
 	instrumentlessEvent = "crbutton"
 )
 
@@ -194,13 +195,13 @@ func run(opts runOpts) error {
 
 	project := os.Getenv("GOOGLE_CLOUD_PROJECT")
 
-	if project == "" {
+	for project == "" {
 		var projects []string
 
 		for len(projects) == 0 {
-			end = logProgress("Retrieving your GCP projects...",
-				"Queried list of your GCP projects",
-				"Failed to retrieve your GCP projects.",
+			end = logProgress("Retrieving your projects...",
+				"Queried list of your projects",
+				"Failed to retrieve your projects.",
 			)
 			projects, err = listProjects()
 			end(err == nil)
@@ -209,19 +210,7 @@ func run(opts runOpts) error {
 			}
 
 			if len(projects) == 0 {
-				coupon, err := instrumentlessCoupon()
-				if err != nil {
-					return fmt.Errorf("could not get instrumentless coupon: %v", err)
-				}
-
-				fmt.Print(errorPrefix+" "+
-					warningLabel.Sprint("You don't have any GCP projects to deploy into!")+
-					"\n  1. Setup project using a starter coupon:"+
-					"\n     "+linkLabel.Sprint(coupon.URL),
-					"\n  2. Once you're done, press "+parameterLabel.Sprint("Enter")+" to continue: ")
-				if _, err := bufio.NewReader(os.Stdin).ReadBytes('\n'); err != nil {
-					return err
-				}
+				fmt.Print(errorPrefix + " " + warningLabel.Sprint("You don't have any projects to deploy into."))
 			}
 		}
 
@@ -232,7 +221,11 @@ func run(opts runOpts) error {
 
 		project, err = promptProject(projects)
 		if err != nil {
-			return err
+			fmt.Println(errorPrefix + " " + warningLabel.Sprint("You need to create a project"))
+			err := promptInstrumentless()
+			if err != nil {
+				return err
+			}
 		}
 	}
 
@@ -258,13 +251,7 @@ func run(opts runOpts) error {
 		if !useExisting {
 			err := promptInstrumentless()
 			if err != nil {
-				fmt.Println(infoPrefix + " Create a new billing account:")
-				fmt.Println("  " + linkLabel.Sprint(billingCreateURL))
-				fmt.Println(questionPrefix + " " + "Once you're done, press " + parameterLabel.Sprint("Enter") + " to continue: ")
-
-				if _, err := bufio.NewReader(os.Stdin).ReadBytes('\n'); err != nil {
-					return err
-				}
+				return err
 			}
 		}
 
@@ -611,12 +598,24 @@ func instrumentlessCoupon() (*instrumentless.Coupon, error) {
 
 func promptInstrumentless() error {
 	coupon, err := instrumentlessCoupon()
-	if err != nil {
-		return fmt.Errorf("could not get instrumentless coupon: %v", err)
+
+	if err != nil || coupon == nil {
+		fmt.Println(infoPrefix + " Create a new billing account:")
+		fmt.Println("  " + linkLabel.Sprint(billingCreateURL))
+		fmt.Println(questionPrefix + " " + "Once you're done, press " + parameterLabel.Sprint("Enter") + " to continue: ")
+
+		if _, err := bufio.NewReader(os.Stdin).ReadBytes('\n'); err != nil {
+			return err
+		}
+
+		return nil
 	}
 
-	fmt.Println(infoPrefix + " Apply a starter coupon to create a billing account:" +
-		"\n  " + linkLabel.Sprint(coupon.URL))
+	code := strings.TrimPrefix(coupon.URL, trygcpURL+";code=")
+
+	fmt.Println(infoPrefix + " Open this page:\n  " + linkLabel.Sprint(trygcpURL))
+
+	fmt.Println(infoPrefix + " Use this coupon code:\n  " + code)
 
 	fmt.Println(questionPrefix + " Once you're done, press " + parameterLabel.Sprint("Enter") + " to continue: ")
 
