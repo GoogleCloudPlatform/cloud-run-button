@@ -25,7 +25,7 @@
         ```
     1. Run the button:
         ```
-        (cd /tmp; ./cloudshell_open --repo_url=https://github.com/GoogleCloudPlatform/cloud-run-hello.git; rm -rf cloud-run-hello)
+        (cd /tmp; rm -rf cloud-run-hello; ./cloudshell_open --repo_url=https://github.com/GoogleCloudPlatform/cloud-run-hello.git; rm -rf cloud-run-hello)
         ```
         Other `cloudshell_open` flags: `--git_branch`, `--dir`, `--context`
 

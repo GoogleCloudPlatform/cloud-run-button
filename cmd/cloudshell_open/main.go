@@ -611,7 +611,13 @@ func promptInstrumentless() error {
 		return nil
 	}
 
-	code := strings.TrimPrefix(coupon.URL, trygcpURL+";code=")
+	code := ""
+	parts := strings.Split(coupon.URL, "code=")
+	if len(parts) == 2 {
+		code = parts[1]
+	} else {
+		return fmt.Errorf("could not get a coupon code")
+	}
 
 	fmt.Println(infoPrefix + " Open this page:\n  " + linkLabel.Sprint(trygcpURL))
 
