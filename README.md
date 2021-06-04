@@ -73,7 +73,7 @@ For example, a fully populated `app.json` file looks like this:
         "allow-unauthenticated": false,
         "memory": "512Mi",
         "cpu": "1",
-        "port": "80",
+        "port": 80,
         "http2": false
     },
     "build": {
