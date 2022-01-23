@@ -27,10 +27,6 @@ func enableAPIs(project string, apis []string) error {
 		return fmt.Errorf("failed to create resource manager client: %w", err)
 	}
 
-	// TODO(ahmetb) specify this explicitly, otherwise for some reason this becomes serviceusage.mtls.googleapis.com (and 404s)
-	// while querying the Operation. investigate later with the client library teams.
-	client.BasePath = "https://serviceusage.googleapis.com/"
-
 	enabled, err := enabledAPIs(client, project)
 	if err != nil {
 		return err
