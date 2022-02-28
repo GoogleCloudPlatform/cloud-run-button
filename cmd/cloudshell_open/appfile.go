@@ -43,6 +43,8 @@ type options struct {
 	CPU                  string `json:"cpu"`
 	Port                 int    `json:"port"`
 	HTTP2                *bool  `json:"http2"`
+	Concurrency          int    `json:"concurrency"`
+	MaxInstances         int    `json:"max-instances"`
 }
 
 type hook struct {
