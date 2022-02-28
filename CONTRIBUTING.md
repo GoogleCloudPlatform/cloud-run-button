@@ -2,7 +2,7 @@
 
 ## Test Cloud Run Button's Underlying Command Locally with Local Go
 
-1. Download Go 1.14.x
+1. Download Go 1.14 (see [`Dockerfile`](Dockerfile) for the exact version used)
 1. Run the tests:
     ```
     go test ./cmd/cloudshell_open
@@ -14,8 +14,12 @@
 1. To test the command:
     1. [Enable the cloudresourcemanager API](https://console.developers.google.com/apis/api/cloudresourcemanager.googleapis.com/overview)
     1. [Enable the billing API](https://console.developers.google.com/apis/api/cloudbilling.googleapis.com/overview)
-    1. Create a Service Account with the *Cloud Run Admin*, *Service Usage Consumer*, *Service Account User*, and *Storage Admin* roles
-    1. Download the JSON key
+    1. Create a Service Account with the following roles:
+        * Cloud Run Admin (`roles/run.admin`), 
+        * Service Usage Admin (`roles/serviceusage.serviceUsageAdmin`), 
+        * Service Account User (`roles/iam.serviceAccountUser`), and
+        * Storage Admin (`roles/storage.admin`).
+    1. [Download the Service Account key as a JSON file](https://cloud.google.com/iam/docs/creating-managing-service-account-keys#creating)
     1. Authenticate gcloud as the service account:
         ```
         export GOOGLE_APPLICATION_CREDENTIALS=PATH_TO_YOUR_SERVICE_ACCOUNT_KEY_FILE
@@ -29,9 +33,11 @@
         ```
         Other `cloudshell_open` flags: `--git_branch`, `--dir`, `--context`
 
-        Env vars you can set to avoid STDIN questions: `GOOGLE_CLOUD_PROJECT` `GOOGLE_CLOUD_REGION`
+        Optionally, you can set to `GOOGLE_CLOUD_PROJECT` `GOOGLE_CLOUD_REGION` to avoid being prompted for these.
 
 ## Test Cloud Run Button's Underlying Command Locally in a Container
+
+⚠️ This will download very large Docker images to your system.
 
 1. [Create a Service Account in a test account](https://console.cloud.google.com/iam-admin/serviceaccounts)
 1. Download the key json file for the new service account
