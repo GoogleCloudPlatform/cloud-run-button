@@ -20,13 +20,14 @@ import (
 	"errors"
 	"flag"
 	"fmt"
-	"github.com/AlecAivazis/survey/v2"
-	"github.com/GoogleCloudPlatform/cloud-run-button/cmd/instrumentless"
-	"google.golang.org/api/transport"
 	"os"
 	"path/filepath"
 	"strings"
 	"time"
+
+	"github.com/AlecAivazis/survey/v2"
+	"github.com/GoogleCloudPlatform/cloud-run-button/cmd/instrumentless"
+	"google.golang.org/api/transport"
 
 	"cloud.google.com/go/compute/metadata"
 	"github.com/briandowns/spinner"
@@ -487,6 +488,16 @@ func optionsToFlags(options options) []string {
 		} else {
 			flags = append(flags, "--use-http2")
 		}
+	}
+
+	if options.Concurrency > 0 {
+		concurrencySetting := fmt.Sprintf("--concurrency=%d", options.Concurrency)
+		flags = append(flags, concurrencySetting)
+	}
+
+	if options.MaxInstances > 0 {
+		maxInstancesSetting := fmt.Sprintf("--max-instances=%d", options.MaxInstances)
+		flags = append(flags, maxInstancesSetting)
 	}
 
 	return flags

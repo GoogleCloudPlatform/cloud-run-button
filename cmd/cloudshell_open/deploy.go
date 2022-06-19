@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"math/rand"
+	"strconv"
 	"strings"
 	"time"
 
@@ -79,6 +80,7 @@ func optionsToResourceRequirements(options options) *runapi.ResourceRequirements
 	if options.CPU != "" {
 		limits["cpu"] = options.CPU
 	}
+
 	return &runapi.ResourceRequirements{Limits: limits}
 }
 
@@ -92,7 +94,6 @@ func optionsToContainerSpec(options options) *runapi.ContainerPort {
 	if options.Port > 0 {
 		containerPort = options.Port
 	}
-
 	return &runapi.ContainerPort{ContainerPort: int64(containerPort), Name: containerPortName}
 }
 
@@ -118,6 +119,7 @@ func newService(name, project, image string, envs map[string]string, options opt
 					Annotations: make(map[string]string),
 				},
 				Spec: &runapi.RevisionSpec{
+					ContainerConcurrency: int64(options.Concurrency),
 					Containers: []*runapi.Container{
 						{
 							Image:     image,
@@ -133,19 +135,23 @@ func newService(name, project, image string, envs map[string]string, options opt
 		},
 	}
 
-	applyMeta(svc.Metadata, image)
-	applyMeta(svc.Spec.Template.Metadata, image)
+	applyMeta(svc.Metadata, image, options.MaxInstances)
+	applyMeta(svc.Spec.Template.Metadata, image, options.MaxInstances)
 
 	return svc
 }
 
 // applyMeta applies optional annotations to the specified Metadata.Annotation field.
-func applyMeta(meta *runapi.ObjectMeta, userImage string) {
+func applyMeta(meta *runapi.ObjectMeta, userImage string, maxScale int) {
 	if meta.Annotations == nil {
 		meta.Annotations = make(map[string]string)
 	}
 	meta.Annotations["client.knative.dev/user-image"] = userImage
 	meta.Annotations["run.googleapis.com/client-name"] = "cloud-run-button"
+
+	if maxScale > 0 {
+		meta.Annotations["autoscaling.knative.dev/maxScale"] = strconv.Itoa(maxScale)
+	}
 }
 
 // generateRevisionName attempts to generate a random revision name that is alphabetically increasing but also has
@@ -172,8 +178,8 @@ func patchService(svc *runapi.Service, envs map[string]string, image string, opt
 	svc.Spec.Template.Spec.Containers[0].Ports[0] = optionsToContainerSpec(options)
 
 	// apply metadata annotations
-	applyMeta(svc.Metadata, image)
-	applyMeta(svc.Spec.Template.Metadata, image)
+	applyMeta(svc.Metadata, image, options.MaxInstances)
+	applyMeta(svc.Spec.Template.Metadata, image, options.MaxInstances)
 
 	// update revision name
 	svc.Spec.Template.Metadata.Name = generateRevisionName(svc.Metadata.Name, svc.Metadata.Generation)
