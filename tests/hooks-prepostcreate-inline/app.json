@@ -1,0 +1,15 @@
+{
+  "hooks": {
+    "precreate": {
+      "commands": [
+        "gcloud run deploy --image=gcr.io/cloudrun/hello --platform=managed --project=$GOOGLE_CLOUD_PROJECT --region=$GOOGLE_CLOUD_REGION --no-allow-unauthenticated $K_SERVICE",
+        "gcloud run services update --platform=managed --project=$GOOGLE_CLOUD_PROJECT --region=$GOOGLE_CLOUD_REGION --update-env-vars=A=A $K_SERVICE"
+      ]
+    },
+    "postcreate": {
+      "commands": [
+        "gcloud run services update --platform=managed --project=$GOOGLE_CLOUD_PROJECT --region=$GOOGLE_CLOUD_REGION --update-env-vars=B=B $K_SERVICE"
+      ]
+    }
+  }
+}

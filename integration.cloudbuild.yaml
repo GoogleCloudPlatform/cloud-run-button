@@ -1,0 +1,77 @@
+steps:
+  - id: build go
+    name: golang:${_VERSION}
+    args:
+      [
+        "go",
+        "build",
+        "-o",
+        "/workspace/cloudshell_open",
+        "./cmd/cloudshell_open",
+      ]
+
+  - id: docker build
+    name: "gcr.io/cloud-builders/docker"
+    args: ["build", "-t", "gcr.io/$PROJECT_ID/button", "."]
+
+  - id: docker push
+    name: "gcr.io/cloud-builders/docker"
+    args: ["push", "gcr.io/$PROJECT_ID/button"]
+
+  - id: image validation
+    name: "gcr.io/cloudshell-images/custom-image-validation"
+    args: ["image_test.py", "--image", "gcr.io/$PROJECT_ID/button"]
+
+  - id: run tests
+    name: gcr.io/$PROJECT_ID/button
+    env:
+      - "GOOGLE_CLOUD_PROJECT=$PROJECT_ID"
+      - "GOOGLE_CLOUD_REGION=${_REGION}"
+      - "GIT_BRANCH=${BRANCH_NAME}"
+      - "PYTHONUNBUFFERED=true"
+      - "TEST_CMD=python3 tests/run_integration_test.py deploy --repo_url $_REPO_URL --repo_branch $BRANCH_NAME"
+    script: |
+      #!/bin/bash -e
+      pip install -r tests/requirements.txt --user
+
+      $TEST_CMD --description "no config" --directory empty-appjson --expected_text 'hello, world'
+      $TEST_CMD --description "inline hooks" --directory hooks-prepostcreate-inline --expected_text 'AB'
+
+      $TEST_CMD --description "external hooks" --directory hooks-prepostcreate-external --expected_text '3'
+      $TEST_CMD --description "external hooks, dirty" --directory hooks-prepostcreate-external --expected_text '3' --dirty
+
+      $TEST_CMD --description "generator" --directory envvars-generated
+      GEN_URL=$(gcloud run services describe  envvars-generated --region $GOOGLE_CLOUD_REGION --format "value(status.url)")
+      OUTPUT=$(curl $GEN_URL --silent)
+      $TEST_CMD --description "generator, dirty" --directory envvars-generated --dirty --expected_text $OUTPUT
+
+      $TEST_CMD --description "options" --directory options --expected_text 'hello, world'
+      $TEST_CMD --description "options - http2" --directory options-http2 --expected_text 'hello, world'
+
+      $TEST_CMD --description "options - require auth" --directory options-require-auth --expected_status 403
+
+      $TEST_CMD --description "custom buildpacks" --directory buildpacks-builder --expected_text 'hello, world'
+
+  - id: cleanup
+    name: "google/cloud-sdk"
+    env:
+      - "GOOGLE_CLOUD_PROJECT=$PROJECT_ID"
+      - "GOOGLE_CLOUD_REGION=${_REGION}"
+    script: |
+      #!/bin/bash -e
+
+      cat /workspace/service_list.txt
+
+      pip install -r tests/requirements.txt --user
+      python3 tests/run_integration_test.py cleanup --debug
+
+timeout: "3600s"
+
+substitutions:
+  _VERSION: "1.14"
+  _REGION: us-central1
+  _REPO_URL: https://github.com/GoogleCloudPlatform/cloud-run-button
+
+options:
+  machineType: "N1_HIGHCPU_32"
+  dynamic_substitutions: true

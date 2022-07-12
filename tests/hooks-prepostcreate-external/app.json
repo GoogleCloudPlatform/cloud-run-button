@@ -1,0 +1,14 @@
+{
+  "hooks": {
+    "precreate": {
+      "commands": [
+        "./precreate.sh"
+      ]
+    },
+    "postcreate": {
+      "commands": [
+        "./postcreate.sh"
+      ]
+    }
+  }
+}

@@ -1,0 +1,8 @@
+{
+    "options": {
+        "memory": "512Mi",
+        "cpu": "2",
+        "max-instances": 10,
+        "concurrency": 10
+    }
+}
