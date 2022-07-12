@@ -75,3 +75,5 @@ substitutions:
 options:
   machineType: "N1_HIGHCPU_32"
   dynamic_substitutions: true
+
+logsBucket: ${PROJECT_ID}-buildlogs
