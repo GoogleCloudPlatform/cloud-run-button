@@ -8,3 +8,5 @@ When adding new features, you should:
 
  * create a new folder in `test/`
  * append the test to the `run tests` step in `../integration.cloudbuild.yaml`
+
+Note: new tests must be run separately, as this harness might use the PR for the configuration, but each tests pulls from the main branch. 
