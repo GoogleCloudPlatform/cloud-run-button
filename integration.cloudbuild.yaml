@@ -32,7 +32,10 @@ steps:
       - "TEST_CMD=python3 tests/run_integration_test.py deploy --repo_url $_REPO_URL --repo_branch $BRANCH_NAME"
     script: |
       #!/bin/bash -e
-      pip install -r tests/requirements.txt --user
+
+      gcloud version
+
+      pip3 install -r tests/requirements.txt --user
 
       $TEST_CMD --description "no config" --directory empty-appjson --expected_text 'hello, world'
       $TEST_CMD --description "inline hooks" --directory hooks-prepostcreate-inline --expected_text 'AB'
