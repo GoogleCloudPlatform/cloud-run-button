@@ -135,23 +135,24 @@ func newService(name, project, image string, envs map[string]string, options opt
 		},
 	}
 
-	applyMeta(svc.Metadata, image, options.MaxInstances)
-	applyMeta(svc.Spec.Template.Metadata, image, options.MaxInstances)
+	applyMeta(svc.Metadata, image)
+	applyMeta(svc.Spec.Template.Metadata, image)
+
+	// maxInstances only applies to template metadata
+	if options.MaxInstances > 0 {
+		svc.Spec.Template.Metadata.Annotations["autoscaling.knative.dev/maxScale"] = strconv.Itoa(options.MaxInstances)
+	}
 
 	return svc
 }
 
-// applyMeta applies optional annotations to the specified Metadata.Annotation field.
-func applyMeta(meta *runapi.ObjectMeta, userImage string, maxScale int) {
+// applyMeta applies optional annotations to the specified Metadata.Annotation fields
+func applyMeta(meta *runapi.ObjectMeta, userImage string) {
 	if meta.Annotations == nil {
 		meta.Annotations = make(map[string]string)
 	}
 	meta.Annotations["client.knative.dev/user-image"] = userImage
 	meta.Annotations["run.googleapis.com/client-name"] = "cloud-run-button"
-
-	if maxScale > 0 {
-		meta.Annotations["autoscaling.knative.dev/maxScale"] = strconv.Itoa(maxScale)
-	}
 }
 
 // generateRevisionName attempts to generate a random revision name that is alphabetically increasing but also has
