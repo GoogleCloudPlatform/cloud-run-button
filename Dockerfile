@@ -10,4 +10,4 @@ RUN CGO_ENABLED=0 GOOS=linux go build -a -ldflags '-extldflags "-static"' \
 FROM gcr.io/cloudshell-images/cloudshell:latest
 COPY --from=build /bin/a.out /bin/cloudshell_open
 
-RUN apt install --only-upgrade google-cloud-sdk/cloud-sdk-bullseye 
+RUN apt update && apt install --only-upgrade google-cloud-sdk/cloud-sdk-bullseye 
