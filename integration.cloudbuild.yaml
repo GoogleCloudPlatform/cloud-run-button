@@ -53,7 +53,7 @@ steps:
       $TEST_CMD --description "generator, dirty" --directory envvars-generated --dirty --expected_text $OUTPUT
 
       # FIX(glasnt): b/257360337
-      # $TEST_CMD --description "options" --directory options --expected_text 'hello, world'
+      $TEST_CMD --description "options" --directory options --expected_text 'hello, world'
 
       $TEST_CMD --description "options - http2" --directory options-http2 --expected_text 'hello, world'
 
