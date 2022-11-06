@@ -29,7 +29,7 @@ steps:
       - "GOOGLE_CLOUD_REGION=${_REGION}"
       - "GIT_BRANCH=${BRANCH_NAME}"
       - "PYTHONUNBUFFERED=true"
-      - "TEST_CMD=python3 tests/run_integration_test.py deploy --repo_url $_REPO_URL --repo_branch $BRANCH_NAME"
+      - "TEST_CMD=python3 tests/run_integration_test.py deploy --repo_url $_REPO_URL --repo_branch $_REPO_BRANCH"
     script: |
       #!/bin/bash -e
 
@@ -37,9 +37,6 @@ steps:
 
       pip3 install -r tests/requirements.txt --user
 
-      echo TEST_CMD: $TEST_CMD
-
-      echo RUN: $TEST_CMD --description "no config" --directory empty-appjson --expected_text 'hello, world'
       $TEST_CMD --description "no config" --directory empty-appjson --expected_text 'hello, world'
 
       $TEST_CMD --description "inline hooks" --directory hooks-prepostcreate-inline --expected_text 'AB'
@@ -52,13 +49,9 @@ steps:
       OUTPUT=$(curl $GEN_URL --silent)
       $TEST_CMD --description "generator, dirty" --directory envvars-generated --dirty --expected_text $OUTPUT
 
-      # FIX(glasnt): b/257360337
       $TEST_CMD --description "options" --directory options --expected_text 'hello, world'
-
       $TEST_CMD --description "options - http2" --directory options-http2 --expected_text 'hello, world'
-
       $TEST_CMD --description "options - require auth" --directory options-require-auth --expected_status 403
-
       $TEST_CMD --description "custom buildpacks" --directory buildpacks-builder --expected_text 'hello, world'
 
   - id: cleanup
@@ -80,6 +73,7 @@ substitutions:
   _VERSION: "1.14"
   _REGION: us-central1
   _REPO_URL: https://github.com/GoogleCloudPlatform/cloud-run-button
+  _REPO_BRANCH: master
 
 options:
   machineType: "N1_HIGHCPU_32"
