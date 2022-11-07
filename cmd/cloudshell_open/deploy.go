@@ -135,22 +135,26 @@ func newService(name, project, image string, envs map[string]string, options opt
 		},
 	}
 
-	applyMeta(svc.Metadata, image, options.MaxInstances)
-	applyMeta(svc.Spec.Template.Metadata, image, options.MaxInstances)
+	applyMeta(svc.Metadata, image)
+	applyMeta(svc.Spec.Template.Metadata, image)
+	applyScaleMeta(svc.Spec.Template.Metadata, "maxScale", options.MaxInstances)
 
 	return svc
 }
 
-// applyMeta applies optional annotations to the specified Metadata.Annotation field.
-func applyMeta(meta *runapi.ObjectMeta, userImage string, maxScale int) {
+// applyMeta applies optional annotations to the specified Metadata.Annotation fields
+func applyMeta(meta *runapi.ObjectMeta, userImage string) {
 	if meta.Annotations == nil {
 		meta.Annotations = make(map[string]string)
 	}
 	meta.Annotations["client.knative.dev/user-image"] = userImage
 	meta.Annotations["run.googleapis.com/client-name"] = "cloud-run-button"
+}
 
-	if maxScale > 0 {
-		meta.Annotations["autoscaling.knative.dev/maxScale"] = strconv.Itoa(maxScale)
+// applyScaleMeta optional annotations for scale commands
+func applyScaleMeta(meta *runapi.ObjectMeta, scaleType string, scaleValue int) {
+	if scaleValue > 0 {
+		meta.Annotations["autoscaling.knative.dev"+scaleType] = strconv.Itoa(scaleValue)
 	}
 }
 
@@ -178,8 +182,11 @@ func patchService(svc *runapi.Service, envs map[string]string, image string, opt
 	svc.Spec.Template.Spec.Containers[0].Ports[0] = optionsToContainerSpec(options)
 
 	// apply metadata annotations
-	applyMeta(svc.Metadata, image, options.MaxInstances)
-	applyMeta(svc.Spec.Template.Metadata, image, options.MaxInstances)
+	applyMeta(svc.Metadata, image)
+	applyMeta(svc.Spec.Template.Metadata, image)
+
+	// apply scale metadata annotations
+	applyScaleMeta(svc.Spec.Template.Metadata, "maxScale", options.MaxInstances)
 
 	// update revision name
 	svc.Spec.Template.Metadata.Name = generateRevisionName(svc.Metadata.Name, svc.Metadata.Generation)

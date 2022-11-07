@@ -1,0 +1,5 @@
+{
+  "options": {
+    "http2": true
+  }
+}
