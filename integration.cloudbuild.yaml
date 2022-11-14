@@ -54,18 +54,19 @@ steps:
       $TEST_CMD --description "options - require auth" --directory options-require-auth --expected_status 403
       $TEST_CMD --description "custom buildpacks" --directory buildpacks-builder --expected_text 'hello, world'
 
+  
   - id: cleanup
-    name: "google/cloud-sdk"
+    name: 'gcr.io/google.com/cloudsdktool/cloud-sdk:slim'
     env:
-      - "GOOGLE_CLOUD_PROJECT=$PROJECT_ID"
       - "GOOGLE_CLOUD_REGION=${_REGION}"
     script: |
       #!/bin/bash -e
+      gcloud run services list --region $GOOGLE_CLOUD_REGION
 
-      cat /workspace/service_list.txt
-
-      pip install -r tests/requirements.txt --user
-      python3 tests/run_integration_test.py cleanup --debug
+      for service in $(gcloud run services list --region $GOOGLE_CLOUD_REGION --format "value(name)"); do
+        echo "🧹 Cleaning up $service"
+        gcloud run services delete $service --region $GOOGLE_CLOUD_REGION --quiet
+      done;
 
 timeout: "3600s"
 

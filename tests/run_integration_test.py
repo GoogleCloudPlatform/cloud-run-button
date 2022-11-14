@@ -12,9 +12,6 @@ GIT_URL = os.environ.get(
     "GIT_URL", "https://github.com/GoogleCloudPlatform/cloud-run-button"
 )
 GIT_BRANCH = os.environ.get("GIT_BRANCH", "master")
-SERVICE_LIST_DIR = os.environ.get("SERVICE_LIST_DIR", "/workspace")
-SERVICE_LIST = os.path.join(SERVICE_LIST_DIR, "service_list.txt")
-
 TESTS_DIR = "tests"
 
 # Keep to Python 3.7 systems (gcloud image currently Python 3.7.3)
@@ -134,14 +131,7 @@ def deploy_service(directory, repo_url, repo_branch, dirty):
     service_url = service_obj["status"]["url"]
 
     clean_clone(folder_name)
-    record_service(service_name)
     return service_url
-
-
-def record_service(service_name):
-    """Append a reference to the created service to a file for later cleanup"""
-    with open(SERVICE_LIST, "a") as f:
-        f.write(service_name + "\n")
 
 
 def delete_service(service_name):
@@ -186,26 +176,6 @@ def get_url(service_url, expected_status=200):
 def cli() -> None:
     """Tool for testing Cloud Run Button deployments"""
     pass
-
-
-@cli.command()
-@click.option("--list_file", help="Test description", default=SERVICE_LIST)
-@click.option("--debug", is_flag=True, default=False, help="Debuggening")
-def cleanup(list_file, debug):
-    """Cleanup deployed services
-    For services recorded to file in the deploy step, clean them up."""
-
-    if not list_file:
-        print_help_msg(cleanup)
-
-    with open(list_file) as f:
-        services = f.read().splitlines()
-
-    print(f"🧹 Cleaning up services: {', '.join(services)}")
-
-    for service in services:
-        delete_service(service)
-
 
 @cli.command()
 @click.option("--description", help="Test description")
