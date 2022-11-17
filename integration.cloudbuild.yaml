@@ -39,7 +39,7 @@ steps:
 
       $TEST_CMD --description "no config" --directory empty-appjson --expected_text 'hello, world'
 
-      $TEST_CMD --description "inline hooks" --directory hooks-prepostcreate-inline --expected_text 'AB'
+      $TEST_CMD --description "inline hooks" --directory hooks-prepostcreate-inline --expected_text 'AB' --debug
 
       $TEST_CMD --description "external hooks" --directory hooks-prepostcreate-external --expected_text '3'
       $TEST_CMD --description "external hooks, dirty" --directory hooks-prepostcreate-external --expected_text '3' --dirty
