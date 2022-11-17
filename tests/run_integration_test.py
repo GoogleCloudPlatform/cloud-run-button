@@ -25,8 +25,8 @@ if not GOOGLE_CLOUD_REGION:
 
 WORKING_DIR = os.environ.get("WORKING_DIR", ".")
 
-DEBUG=os.environ.get("DEBUG", False)
-if DEBUG == "": 
+DEBUG = os.environ.get("DEBUG", False)
+if DEBUG == "":
     DEBUG = False
 
 ###############################################################################
@@ -86,10 +86,7 @@ def run_shell(params):
     output = resp.stdout.decode("utf-8")
     error = resp.stderr.decode("utf-8")
 
-    
     if DEBUG:
-        # Animated CLIs can make output messy, so only show the long tail
-        #debugging("stdout:", output[-300:] or "<None>")
         debugging("stdout:", output or "<None>")
         debugging("stderr:", error or "<None>")
 
@@ -183,6 +180,7 @@ def get_url(service_url, expected_status=200):
 def cli() -> None:
     """Tool for testing Cloud Run Button deployments"""
     pass
+
 
 @cli.command()
 @click.option("--description", help="Test description")
