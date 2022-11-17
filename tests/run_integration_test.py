@@ -158,6 +158,7 @@ def get_url(service_url, expected_status=200):
     debugging(f"Service: {service_url}")
 
     try:
+        request.urlcleanup() # reset cache
         resp = request.urlopen(service_url)
         status = resp.status
         body = resp.read().decode("utf-8")
