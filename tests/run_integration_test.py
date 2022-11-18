@@ -25,13 +25,17 @@ if not GOOGLE_CLOUD_REGION:
 
 WORKING_DIR = os.environ.get("WORKING_DIR", ".")
 
+DEBUG = os.environ.get("DEBUG", False)
+if DEBUG == "":
+    DEBUG = False
+
 ###############################################################################
 
 
 def debugging(*args):
     c = click.get_current_context()
     output = " ".join([str(k) for k in args])
-    if c.params["debug"]:
+    if DEBUG:
         print(f"🐞 {output}")
 
 
@@ -66,10 +70,10 @@ def cloudshell_open(directory, repo_url, git_branch):
 
     if directory:
         params += [f"--dir={TESTS_DIR}/{directory}"]
-    return run_shell(params, quiet=True)
+    return run_shell(params)
 
 
-def run_shell(params, quiet=False):
+def run_shell(params):
     """Invoke the given subproceess, capturing output status and returning stdout"""
     debugging("Running:", " ".join(params))
 
@@ -81,9 +85,9 @@ def run_shell(params, quiet=False):
 
     output = resp.stdout.decode("utf-8")
     error = resp.stderr.decode("utf-8")
-    # Animated CLIs can make output messy, so only show the long tail
-    if not quiet:
-        debugging("stdout:", output[-300:] or "<None>")
+
+    if DEBUG:
+        debugging("stdout:", output or "<None>")
         debugging("stderr:", error or "<None>")
 
     if resp.returncode != 0:
@@ -154,6 +158,7 @@ def get_url(service_url, expected_status=200):
     debugging(f"Service: {service_url}")
 
     try:
+        request.urlcleanup() # reset cache
         resp = request.urlopen(service_url)
         status = resp.status
         body = resp.read().decode("utf-8")
@@ -177,6 +182,7 @@ def cli() -> None:
     """Tool for testing Cloud Run Button deployments"""
     pass
 
+
 @cli.command()
 @click.option("--description", help="Test description")
 @click.option("--repo_url", help="Repo URL to deploy")
@@ -185,7 +191,6 @@ def cli() -> None:
 @click.option("--expected_status", default=200, help="Status code to expect")
 @click.option("--expected_text", help="Text in service to expect")
 @click.option("--dirty", is_flag=True, default=False, help="Keep existing service")
-@click.option("--debug", is_flag=True, default=False, help="Debuggening")
 def deploy(
     description,
     directory,
@@ -194,7 +199,6 @@ def deploy(
     expected_status,
     expected_text,
     dirty,
-    debug,
 ):
     """Run service tests.
 

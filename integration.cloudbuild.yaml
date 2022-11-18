@@ -25,6 +25,7 @@ steps:
   - id: run tests
     name: gcr.io/$PROJECT_ID/button
     env:
+      - "DEBUG=${_DEBUG}"
       - "GOOGLE_CLOUD_PROJECT=$PROJECT_ID"
       - "GOOGLE_CLOUD_REGION=${_REGION}"
       - "GIT_BRANCH=${BRANCH_NAME}"
@@ -75,6 +76,7 @@ substitutions:
   _REGION: us-central1
   _REPO_URL: https://github.com/GoogleCloudPlatform/cloud-run-button
   _REPO_BRANCH: master
+  _DEBUG: ""
 
 options:
   machineType: "N1_HIGHCPU_32"
