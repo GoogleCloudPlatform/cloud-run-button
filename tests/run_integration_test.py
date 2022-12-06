@@ -3,6 +3,7 @@ import click
 import os
 import shutil
 import subprocess
+import time
 from urllib import request, error
 
 from googleapiclient.discovery import build as api
@@ -218,6 +219,7 @@ def deploy(
         f"\nRunning {description or directory or 'a test'}\nConfig: {directory or 'root'} in {repo_url} on branch {repo_branch}."
     )
     service_url = deploy_service(directory, repo_url, repo_branch, dirty)
+    time.sleep(2)
     status, body = get_url(service_url, expected_status)
     print(f"⬜ Service deployed to {service_url}.")
 
