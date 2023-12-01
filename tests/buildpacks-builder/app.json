@@ -1,7 +1,7 @@
 {
   "build": {
     "buildpacks": {
-      "builder": "heroku/buildpacks"
+      "builder": "paketobuildpacks/builder:full"
     }
   }
 }
