@@ -157,6 +157,7 @@ def delete_service(service_name):
 def get_url(service_url, expected_status=200):
     """GET a URL, returning the status and body"""
     debugging(f"Service: {service_url}")
+    status, body = "",""
 
     try:
         request.urlcleanup() # reset cache
@@ -246,10 +247,12 @@ def deploy(
             print(f'🟢 Service returned expected content ("{expected_text}").')
         else:
             print(
-                f"❌ Service did not return expected content ({expected_text} not in body.\nBody: {body}"
+                f"❌ Service did not return expected content ({expected_text} not in body).\nBody: {body}"
             )
             raise ValueError(f"Error: Expected value not found.\n{debugging_details}")
     print(f"✅ Test successful.")
+
+    time.sleep(60) ## avoid quota issues
 
 
 if __name__ == "__main__":
