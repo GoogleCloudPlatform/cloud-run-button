@@ -48,6 +48,7 @@ const (
 	billingCreateURL    = "https://console.cloud.google.com/billing/create"
 	trygcpURL           = "https://console.cloud.google.com/trygcp"
 	instrumentlessEvent = "crbutton"
+	artifactRegistry    = "cloud-run-source-deploy"
 )
 
 var (
@@ -291,6 +292,12 @@ func run(opts runOpts) error {
 		}
 	}
 
+	err = createArtifactRegistry(project, region, artifactRegistry)
+	end(err == nil)
+	if err != nil {
+		return err
+	}
+
 	repoName := filepath.Base(appDir)
 	serviceName := repoName
 	if appFile.Name != "" {
@@ -298,7 +305,7 @@ func run(opts runOpts) error {
 	}
 	serviceName = tryFixServiceName(serviceName)
 
-	image := fmt.Sprintf("gcr.io/%s/%s", project, serviceName)
+	image := fmt.Sprintf("%s-pkg.dev/%s/%s/%s", region, project, artifactRegistry, serviceName)
 
 	existingEnvVars := make(map[string]struct{})
 	// todo(jamesward) actually determine if the service exists instead of assuming it doesn't if we get an error
