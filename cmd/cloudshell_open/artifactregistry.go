@@ -39,16 +39,9 @@ func createArtifactRegistry(project string, region string, repoName string) erro
 	req := &artifactregistrypb.GetRepositoryRequest{
 		Name: repoFull,
 	}
-	op, err := client.GetRepository(ctx, req)
+	var _, err2 = client.GetRepository(ctx, req)
 
-	if op.Name != repoFull {
-		// TODO: handle error
-
-	}
-
-	if err != nil {
-		//Repo doesn't exist, create it.
-		fmt.Printf("Creating %s in region %s\n", repoName, region)
+	if err2 != nil {
 		req := &artifactregistrypb.CreateRepositoryRequest{
 			Parent:       repoPrefix,
 			RepositoryId: repoName,

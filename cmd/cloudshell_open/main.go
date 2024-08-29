@@ -292,7 +292,10 @@ func run(opts runOpts) error {
 		}
 	}
 
-	fmt.Printf("Setting up %s (if it doesn't already exist)\n", artifactRegistry)
+	end = logProgress(
+		fmt.Sprintf("Setting up %s in region %s (if it doesn't already exist)", highlight(artifactRegistry), highlight(region)),
+		fmt.Sprintf("Set up %s in region %s (if it doesn't already exist)", highlight(artifactRegistry), highlight(region)),
+		"Failed to setup artifact registry.")
 	err = createArtifactRegistry(project, region, artifactRegistry)
 	end(err == nil)
 	if err != nil {
@@ -306,7 +309,7 @@ func run(opts runOpts) error {
 	}
 	serviceName = tryFixServiceName(serviceName)
 
-	image := fmt.Sprintf("%s-pkg.dev/%s/%s/%s", region, project, artifactRegistry, serviceName)
+	image := fmt.Sprintf("%s-docker.pkg.dev/%s/%s/%s", region, project, artifactRegistry, serviceName)
 
 	existingEnvVars := make(map[string]struct{})
 	// todo(jamesward) actually determine if the service exists instead of assuming it doesn't if we get an error
