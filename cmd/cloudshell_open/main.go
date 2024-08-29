@@ -292,6 +292,7 @@ func run(opts runOpts) error {
 		}
 	}
 
+	fmt.Printf("Setting up %s (if it doesn't already exist)\n", artifactRegistry)
 	err = createArtifactRegistry(project, region, artifactRegistry)
 	end(err == nil)
 	if err != nil {

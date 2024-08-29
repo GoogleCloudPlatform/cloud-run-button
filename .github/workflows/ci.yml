@@ -9,15 +9,10 @@ jobs:
         docker system prune -a -f
         df -h
     - uses: actions/checkout@master
-    - uses: actions/setup-go@v1
+    - uses: actions/setup-go@v5
       with:
-        go-version: 1.14
-    - run: git config --global init.defaultBranch main # TODO remove later as git updates to a newer version
+        go-version: 1.23
     - run: go mod download
-    - name: Set up git
-      run: |
-        git config --global user.email "you@example.com"
-        git config --global user.name "Your Name"
     - name: Validate formatting with go fmt
       run: diff -u <(echo -n) <(gofmt -d -s .)
       working-directory: ./cmd/cloudshell_open
@@ -26,13 +21,14 @@ jobs:
       working-directory: ./cmd/cloudshell_open
     - name: Build docker image
       run: docker build -t runbutton .
+
   redirector:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@master
-    - uses: actions/setup-go@v1
+    - uses: actions/setup-go@v5
       with:
-        go-version: 1.14
+        go-version: 1.23
     - run: go mod download
       working-directory: ./cmd/redirector
     - name: Validate formatting with go fmt

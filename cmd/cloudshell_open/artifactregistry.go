@@ -18,28 +18,52 @@ import (
 	"context"
 	"fmt"
 
+	artifactregistry "cloud.google.com/go/artifactregistry/apiv1"
 	artifactregistrypb "cloud.google.com/go/artifactregistry/apiv1/artifactregistrypb"
-	"google.golang.org/api/artifactregistry/v1"
 )
 
 // Create a "Cloud Run Source Deploy" repository in Artifact Registry (if it doesn't already exist)
 func createArtifactRegistry(project string, region string, repoName string) error {
-	client, err := artifactregistry.NewClient(context.TODO())
+
+	repoPrefix := fmt.Sprintf("projects/%s/locations/%s", project, region)
+	repoFull := fmt.Sprintf("%s/%s", repoPrefix, repoName)
+
+	ctx := context.Background()
+
+	//TODO(glasnt): check registry already exists before trying to create it.
+	client, err := artifactregistry.NewClient(ctx)
 	if err != nil {
 		return fmt.Errorf("failed to create artifact registry client: %w", err)
 	}
 
-	//TODO(glasnt): check registry already exists before trying to create it.
+	req := &artifactregistrypb.GetRepositoryRequest{
+		Name: repoFull,
+	}
+	op, err := client.GetRepository(ctx, req)
 
-	req := &artifactregistrypb.CreateRepositoryRequest{
-		parent:       fmt.Sprintf("projects/%s/locations/%s", project, region),
-		RepositoryId: repoName,
-		Repository:   "docker",
+	if op.Name != repoFull {
+		// TODO: handle error
+
 	}
 
-	op, err := client.CreateRepository(context.TODO(), req)
 	if err != nil {
-		// TODO: Handle error.
+		//Repo doesn't exist, create it.
+		fmt.Printf("Creating %s in region %s\n", repoName, region)
+		req := &artifactregistrypb.CreateRepositoryRequest{
+			Parent:       repoPrefix,
+			RepositoryId: repoName,
+			Repository: &artifactregistrypb.Repository{
+				Name:         repoFull,
+				FormatConfig: &artifactregistrypb.Repository_DockerConfig{},
+			},
+		}
+
+		_, err := client.CreateRepository(context.TODO(), req)
+		if err != nil {
+			// TODO: Handle error.
+		}
 	}
+
 	return nil
+
 }
