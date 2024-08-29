@@ -13,6 +13,10 @@ jobs:
       with:
         go-version: 1.23
     - run: go mod download
+    - name: Set up git
+      run: |
+        git config --global user.email "you@example.com"
+        git config --global user.name "Your Name"
     - name: Validate formatting with go fmt
       run: diff -u <(echo -n) <(gofmt -d -s .)
       working-directory: ./cmd/cloudshell_open
