@@ -48,12 +48,13 @@ func createArtifactRegistry(project string, region string, repoName string) erro
 			Repository: &artifactregistrypb.Repository{
 				Name:         repoFull,
 				FormatConfig: &artifactregistrypb.Repository_DockerConfig{},
+				// ^^ this is incorrect
 			},
 		}
 
 		_, err := client.CreateRepository(context.TODO(), req)
 		if err != nil {
-			// TODO: Handle error.
+			return fmt.Errorf("failed to create artifact registry: %w", err)
 		}
 	}
 
