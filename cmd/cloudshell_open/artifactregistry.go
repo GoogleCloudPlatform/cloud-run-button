@@ -30,7 +30,7 @@ func createArtifactRegistry(project string, region string, repoName string) erro
 
 	ctx := context.Background()
 
-	//TODO(glasnt): check registry already exists before trying to create it.
+	//Check for existing repo
 	client, err := artifactregistry.NewClient(ctx)
 	if err != nil {
 		return fmt.Errorf("failed to create artifact registry client: %w", err)
@@ -39,9 +39,10 @@ func createArtifactRegistry(project string, region string, repoName string) erro
 	req := &artifactregistrypb.GetRepositoryRequest{
 		Name: repoFull,
 	}
-	var _, err2 = client.GetRepository(ctx, req)
+	var existingRepo, _ = client.GetRepository(ctx, req)
 
-	if err2 != nil {
+	// Create repo if it doesn't already exist.
+	if existingRepo != nil {
 		req := &artifactregistrypb.CreateRepositoryRequest{
 			Parent:       repoPrefix,
 			RepositoryId: repoName,
