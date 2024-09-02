@@ -2,7 +2,7 @@ module github.com/GoogleCloudPlatform/cloud-run-button
 
 go 1.21
 
-toolchain go1.23.0
+toolchain go1.21.0
 
 require (
 	cloud.google.com/go/artifactregistry v1.15.0
