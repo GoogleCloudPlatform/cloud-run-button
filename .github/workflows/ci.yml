@@ -7,6 +7,7 @@ jobs:
     - name: Free disk space
       run: |
         docker system prune -a -f
+        sudo rm -rf /usr/local/lib/android
         df /var/
         df -h
     - uses: actions/checkout@master
