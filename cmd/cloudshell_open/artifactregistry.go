@@ -46,9 +46,8 @@ func createArtifactRegistry(project string, region string, repoName string) erro
 			Parent:       repoPrefix,
 			RepositoryId: repoName,
 			Repository: &artifactregistrypb.Repository{
-				Name:         repoFull,
-				FormatConfig: &artifactregistrypb.Repository_DockerConfig{},
-				// ^^ this is incorrect
+				Name:   repoFull,
+				Format: artifactregistrypb.Repository_DOCKER,
 			},
 		}
 
