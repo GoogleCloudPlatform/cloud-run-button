@@ -1,6 +1,9 @@
 steps:
   - id: build go
     name: golang:${_VERSION}
+    env:
+      - CGO_ENABLED=0
+      - GOOS=linux
     args:
       [
         "go",
