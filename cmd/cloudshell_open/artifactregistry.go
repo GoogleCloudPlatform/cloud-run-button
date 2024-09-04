@@ -26,7 +26,7 @@ import (
 func createArtifactRegistry(project string, region string, repoName string) error {
 
 	repoPrefix := fmt.Sprintf("projects/%s/locations/%s", project, region)
-	repoFull := fmt.Sprintf("%s/%s", repoPrefix, repoName)
+	repoFull := fmt.Sprintf("%s/repositories/%s", repoPrefix, repoName)
 
 	ctx := context.Background()
 
