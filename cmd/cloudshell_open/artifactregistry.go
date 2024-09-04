@@ -42,11 +42,13 @@ func createArtifactRegistry(project string, region string, repoName string) erro
 	existingRepo, err := client.GetRepository(ctx, req)
 
 	if err != nil {
+		// TODO need to continue if error is "code = NotFound desc = Requested entity was not found."
+		// Any other error:
 		return fmt.Errorf("failed to retrieve existing artifact registry client: %w", err)
 	}
 
 	// Create repo if it doesn't already exist.
-	if existingRepo != nil {
+	if existingRepo == nil {
 		req := &artifactregistrypb.CreateRepositoryRequest{
 			Parent:       repoPrefix,
 			RepositoryId: repoName,
