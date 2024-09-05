@@ -16,10 +16,13 @@ package main
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	artifactregistry "cloud.google.com/go/artifactregistry/apiv1"
 	artifactregistrypb "cloud.google.com/go/artifactregistry/apiv1/artifactregistrypb"
+	codes "google.golang.org/grpc/codes"
+	status "google.golang.org/grpc/status"
 )
 
 // Create a "Cloud Run Source Deploy" repository in Artifact Registry (if it doesn't already exist)
@@ -30,24 +33,26 @@ func createArtifactRegistry(project string, region string, repoName string) erro
 
 	ctx := context.Background()
 
-	//Check for existing repo
 	client, err := artifactregistry.NewClient(ctx)
 	if err != nil {
 		return fmt.Errorf("failed to create artifact registry client: %w", err)
 	}
 
+	// Check for existing repo
 	req := &artifactregistrypb.GetRepositoryRequest{
 		Name: repoFull,
 	}
 	existingRepo, err := client.GetRepository(ctx, req)
 
 	if err != nil {
-		// TODO need to continue if error is "code = NotFound desc = Requested entity was not found."
-		// Any other error:
-		return fmt.Errorf("failed to retrieve existing artifact registry client: %w", err)
+		// The repo might not already exist, so allow that specific grpc error
+		notFoundError := status.Error(codes.NotFound, "Requested entity was not found.")
+		if !(errors.Is(err, notFoundError)) {
+			return fmt.Errorf("failed to retrieve existing artifact registry client: %w", err)
+		}
 	}
 
-	// Create repo if it doesn't already exist.
+	// If the existing repo doesn't exist, create it
 	if existingRepo == nil {
 		req := &artifactregistrypb.CreateRepositoryRequest{
 			Parent:       repoPrefix,
