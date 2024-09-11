@@ -277,7 +277,7 @@ func run(opts runOpts) error {
 		fmt.Sprintf("Enabling Cloud Run API on project %s...", highlight(project)),
 		fmt.Sprintf("Enabled Cloud Run API on project %s.", highlight(project)),
 		fmt.Sprintf("Failed to enable required APIs on project %s.", highlight(project)))
-	err = enableAPIs(project, []string{"run.googleapis.com", "containerregistry.googleapis.com"})
+	err = enableAPIs(project, []string{"run.googleapis.com", "artifactregistry.googleapis.com"})
 	end(err == nil)
 	if err != nil {
 		return err
