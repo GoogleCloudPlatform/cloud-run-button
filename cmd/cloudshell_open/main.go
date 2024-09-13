@@ -307,7 +307,10 @@ func run(opts runOpts) error {
 	if appFile.Name != "" {
 		serviceName = appFile.Name
 	}
-	serviceName = tryFixServiceName(serviceName)
+	serviceName, err = tryFixServiceName(serviceName)
+	if err != nil {
+		return err
+	}
 
 	image := fmt.Sprintf("%s-docker.pkg.dev/%s/%s/%s", region, project, artifactRegistry, serviceName)
 
