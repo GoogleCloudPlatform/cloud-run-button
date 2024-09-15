@@ -48,6 +48,7 @@ const (
 	billingCreateURL    = "https://console.cloud.google.com/billing/create"
 	trygcpURL           = "https://console.cloud.google.com/trygcp"
 	instrumentlessEvent = "crbutton"
+	artifactRegistry    = "cloud-run-source-deploy"
 )
 
 var (
@@ -276,7 +277,7 @@ func run(opts runOpts) error {
 		fmt.Sprintf("Enabling Cloud Run API on project %s...", highlight(project)),
 		fmt.Sprintf("Enabled Cloud Run API on project %s.", highlight(project)),
 		fmt.Sprintf("Failed to enable required APIs on project %s.", highlight(project)))
-	err = enableAPIs(project, []string{"run.googleapis.com", "containerregistry.googleapis.com"})
+	err = enableAPIs(project, []string{"run.googleapis.com", "artifactregistry.googleapis.com"})
 	end(err == nil)
 	if err != nil {
 		return err
@@ -291,14 +292,27 @@ func run(opts runOpts) error {
 		}
 	}
 
+	end = logProgress(
+		fmt.Sprintf("Setting up %s in region %s (if it doesn't already exist)", highlight(artifactRegistry), highlight(region)),
+		fmt.Sprintf("Set up %s in region %s (if it doesn't already exist)", highlight(artifactRegistry), highlight(region)),
+		"Failed to setup artifact registry.")
+	err = createArtifactRegistry(project, region, artifactRegistry)
+	end(err == nil)
+	if err != nil {
+		return err
+	}
+
 	repoName := filepath.Base(appDir)
 	serviceName := repoName
 	if appFile.Name != "" {
 		serviceName = appFile.Name
 	}
-	serviceName = tryFixServiceName(serviceName)
+	serviceName, err = tryFixServiceName(serviceName)
+	if err != nil {
+		return err
+	}
 
-	image := fmt.Sprintf("gcr.io/%s/%s", project, serviceName)
+	image := fmt.Sprintf("%s-docker.pkg.dev/%s/%s/%s", region, project, artifactRegistry, serviceName)
 
 	existingEnvVars := make(map[string]struct{})
 	// todo(jamesward) actually determine if the service exists instead of assuming it doesn't if we get an error

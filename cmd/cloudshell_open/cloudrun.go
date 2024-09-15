@@ -115,12 +115,12 @@ func envVars(project, name, region string) (map[string]struct{}, error) {
 // prevent deployment failures due to Cloud Run service naming constraints such
 // as:
 //
-//   * names with a leading non-letter (e.g. digit or '-') are prefixed
-//   * names over 63 characters are truncated
-//   * names ending with a '-' have the suffix trimmed
-func tryFixServiceName(name string) string {
+//   - names with a leading non-letter (e.g. digit or '-') are prefixed
+//   - names over 63 characters are truncated
+//   - names ending with a '-' have the suffix trimmed
+func tryFixServiceName(name string) (string, error) {
 	if name == "" {
-		return name
+		return "", fmt.Errorf("service name can't be empty")
 	}
 
 	name = strings.ToLower(name)
@@ -145,5 +145,5 @@ func tryFixServiceName(name string) string {
 		name = name[:len(name)-1]
 	}
 
-	return name
+	return name, nil
 }

@@ -1,6 +1,9 @@
 steps:
   - id: build go
     name: golang:${_VERSION}
+    env:
+      - CGO_ENABLED=0
+      - GOOS=linux
     args:
       [
         "go",
@@ -55,7 +58,7 @@ steps:
       $TEST_CMD --description "options - require auth" --directory options-require-auth --expected_status 403
       $TEST_CMD --description "custom buildpacks" --directory buildpacks-builder --expected_text 'hello, world'
 
-  
+
   - id: cleanup
     name: 'gcr.io/google.com/cloudsdktool/cloud-sdk:slim'
     env:
@@ -72,7 +75,7 @@ steps:
 timeout: "3600s"
 
 substitutions:
-  _VERSION: "1.14"
+  _VERSION: "1.21"
   _REGION: us-central1
   _REPO_URL: https://github.com/GoogleCloudPlatform/cloud-run-button
   _REPO_BRANCH: master

@@ -46,7 +46,7 @@ func Test_tryFixServiceName(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := tryFixServiceName(tt.in); got != tt.want {
+			if got, _ := tryFixServiceName(tt.in); got != tt.want {
 				t.Errorf("tryFixServiceName(%s) = %v, want %v", tt.in, got, tt.want)
 			}
 		})
