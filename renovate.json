@@ -1,6 +1,25 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
   "extends": [
-    "config:recommended"
-  ]
+    "config:base",
+    "schedule:weekly",
+    ":semanticCommits"
+  ],
+  "postUpdateOptions": [
+    "gomodTidy"
+  ],
+  "commitMessagePrefix": "chore(all): ",
+  "commitMessageAction": "update",
+  "groupName": "all",
+  "packageRules": [
+    {
+      "updateTypes": [
+        "major"
+      ],
+      "enabled": false
+    }
+  ],
+  "constraints": {
+    "go": "1.21"
+  }
 }
