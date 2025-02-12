@@ -2,16 +2,16 @@ module github.com/GoogleCloudPlatform/cloud-run-button
 
 go 1.21
 
-toolchain go1.21.0
+toolchain go1.24.0
 
 require (
-	cloud.google.com/go/artifactregistry v1.15.0
-	cloud.google.com/go/compute/metadata v0.5.0
-	github.com/AlecAivazis/survey/v2 v2.0.7
-	github.com/briandowns/spinner v1.9.0
-	github.com/fatih/color v1.15.0
-	google.golang.org/api v0.193.0
-	google.golang.org/grpc v1.65.0
+	cloud.google.com/go/artifactregistry v1.16.1
+	cloud.google.com/go/compute/metadata v0.6.0
+	github.com/AlecAivazis/survey/v2 v2.3.7
+	github.com/briandowns/spinner v1.23.2
+	github.com/fatih/color v1.18.0
+	google.golang.org/api v0.220.0
+	google.golang.org/grpc v1.70.0
 )
 
 require (
