@@ -75,7 +75,7 @@ steps:
 timeout: "3600s"
 
 substitutions:
-  _VERSION: "1.21"
+  _VERSION: "1.23"
   _REGION: us-central1
   _REPO_URL: https://github.com/GoogleCloudPlatform/cloud-run-button
   _REPO_BRANCH: master
@@ -83,6 +83,6 @@ substitutions:
 
 options:
   machineType: "N1_HIGHCPU_32"
-  dynamic_substitutions: true
+  dynamicSubstitutions: true
 
 logsBucket: ${PROJECT_ID}-buildlogs
