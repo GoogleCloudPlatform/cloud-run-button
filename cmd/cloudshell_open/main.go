@@ -383,9 +383,10 @@ func run(opts runOpts) error {
 			cmdColor.Printf("\tmvn package jib:build -Dimage=%s\n", parameter(image))
 			err = jibMavenBuild(appDir, image)
 		} else {
+			pushImage = false // --publish won't build local, so don't push anything.
 			fmt.Println(infoPrefix + " Attempting to build this application with Cloud Native Buildpacks (buildpacks.io)...")
 			fmt.Println(infoPrefix + " FYI, running the following command:")
-			cmdColor.Printf("\tpack build %s --path %s --builder %s\n", parameter(image), parameter(appDir), parameter(builderImage))
+			cmdColor.Printf("\tpack build %s --path %s --builder %s --publish\n", parameter(image), parameter(appDir), parameter(builderImage))
 			err = packBuild(appDir, image, builderImage)
 		}
 
