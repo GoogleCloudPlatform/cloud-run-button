@@ -363,6 +363,7 @@ func run(opts runOpts) error {
 
 	dockerFileExists, _ := dockerFileExists(appDir)
 	jibMaven, _ := jibMavenConfigured(appDir)
+	composeYamlExists, _ := composeFileExists(appDir)
 
 	if skipBuild {
 		fmt.Println(infoPrefix + " Skipping built-in build methods")
@@ -376,6 +377,16 @@ func run(opts runOpts) error {
 			fmt.Println(infoPrefix + " FYI, running the following command:")
 			cmdColor.Printf("\tdocker build -t %s %s\n", parameter(image), parameter(appDir))
 			err = dockerBuild(appDir, image)
+		} else if composeYamlExists {
+			fmt.Println(infoPrefix + " Attempting to deploy this application with Docker Compose...")
+			fmt.Println(infoPrefix + " FYI, running the following command:")
+			cmdColor.Printf("\tgcloud run compose up --region %s\n", parameter(region))
+			err = composeRunUp(appDir, region)
+			if err == nil {
+				end(true)
+				fmt.Printf(successPrefix + " Your Compose application is now live on Cloud Run.\n")
+				return nil
+			}
 		} else if !skipJib && jibMaven {
 			pushImage = false
 			fmt.Println(infoPrefix + " Attempting to build this application with Jib Maven plugin...")
