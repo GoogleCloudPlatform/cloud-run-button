@@ -29,7 +29,7 @@ type myWriter struct {
 }
 
 func (m myWriter) Write(p []byte) (int, error) {
-	return color.New(m.color).Fprintf(m.out, string(p))
+	return color.New(m.color).Fprintln(m.out, string(p))
 }
 
 func runScript(dir, command string, envs []string) error {

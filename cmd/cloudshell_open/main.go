@@ -384,7 +384,7 @@ func run(opts runOpts) error {
 			err = composeRunUp(appDir, region)
 			if err == nil {
 				end(true)
-				fmt.Printf(successPrefix + " Your Compose application is now live on Cloud Run.\n")
+				fmt.Println(successPrefix + " Your Compose application is now live on Cloud Run.\n")
 				return nil
 			}
 		} else if !skipJib && jibMaven {
