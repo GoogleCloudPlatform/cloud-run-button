@@ -85,7 +85,7 @@ func redirect(w http.ResponseWriter, req *http.Request) {
 		r, err := parseReferer(referer, availableExtractors)
 		if err != nil {
 			w.WriteHeader(http.StatusBadRequest)
-			fmt.Fprintf(w, errors.Wrapf(err, "failed to parse %s header", hdrReferer).Error())
+			fmt.Fprint(w, errors.Wrapf(err, "failed to parse %s header", hdrReferer).Error())
 			return
 		}
 		repo = r
@@ -150,13 +150,13 @@ func manualRedirect(w http.ResponseWriter, req *http.Request) {
 	origQuery, err := url.ParseQuery(req.FormValue("orig_query"))
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
-		fmt.Fprintf(w, errors.Wrapf(err, "failed to parse orig_query=%q: %v", origQuery, err).Error())
+		fmt.Fprint(w, errors.Wrapf(err, "failed to parse orig_query=%q: %v", origQuery, err).Error())
 		return
 	}
 	repo, err := parseReferer(refURL, availableExtractors)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
-		fmt.Fprintf(w, errors.Wrapf(err, "failed to parse url into a github repository: %s", refURL).Error())
+		fmt.Fprint(w, errors.Wrapf(err, "failed to parse url into a github repository: %s", refURL).Error())
 		return
 	}
 	doRedirect(w, repo, origQuery)
