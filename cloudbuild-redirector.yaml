@@ -1,16 +1,19 @@
 steps:
 - name: 'gcr.io/cloud-builders/docker'
-  args: ['build', '--tag', 'gcr.io/$PROJECT_ID/button-redirector:$SHORT_SHA', 'cmd/redirector']
+  args: ['build', '--tag', 'gcr.io/$PROJECT_ID/button-redirector', '--tag', 'gcr.io/$PROJECT_ID/button-redirector:public-image-$COMMIT_SHA', 'cmd/redirector']
 - name: 'gcr.io/cloud-builders/docker'
-  args: ['push', 'gcr.io/$PROJECT_ID/button-redirector:$SHORT_SHA']
+  args: ['push', 'gcr.io/$PROJECT_ID/button-redirector:public-image-$COMMIT_SHA']
 - name: 'gcr.io/cloud-builders/gcloud'
   args:
   - run
   - deploy
   - cloud-run-button-deploy
-  - --image=gcr.io/$PROJECT_ID/button-redirector:$SHORT_SHA
+  - --image=gcr.io/$PROJECT_ID/button-redirector:$COMMIT_SHA
   - --region=us-central1
   - --platform=managed
   - --quiet
   env:
   - CLOUDSDK_CORE_DISABLE_PROMPTS=1
+images:
+  - "gcr.io/$PROJECT_ID/button-redirector"
+  - "gcr.io/$PROJECT_ID/button-redirector:public-image-${COMMIT_SHA}"
