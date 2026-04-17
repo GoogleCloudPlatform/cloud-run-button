@@ -14,6 +14,7 @@ steps:
   - --quiet
   env:
   - CLOUDSDK_CORE_DISABLE_PROMPTS=1
+
 images:
   - "gcr.io/$PROJECT_ID/button-redirector"
   - "gcr.io/$PROJECT_ID/button-redirector:public-image-${COMMIT_SHA}"
