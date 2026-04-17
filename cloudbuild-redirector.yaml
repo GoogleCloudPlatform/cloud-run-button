@@ -8,7 +8,7 @@ steps:
   - run
   - deploy
   - cloud-run-button-deploy
-  - --image=gcr.io/$PROJECT_ID/button-redirector:$COMMIT_SHA
+  - --image=gcr.io/$PROJECT_ID/button-redirector:public-image-$COMMIT_SHA
   - --region=us-central1
   - --platform=managed
   - --quiet
