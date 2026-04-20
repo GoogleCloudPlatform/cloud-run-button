@@ -1,6 +1,8 @@
 steps:
 - name: 'gcr.io/cloud-builders/docker'
-  args: ['build', '--tag', 'gcr.io/$PROJECT_ID/button-redirector', '--tag', 'gcr.io/$PROJECT_ID/button-redirector:public-image-${COMMIT_SHA}', 'cmd/redirector']
+  args: ['build', '--tag', 'gcr.io/$PROJECT_ID/button-redirector:latest', '--tag', 'gcr.io/$PROJECT_ID/button-redirector:public-image-${COMMIT_SHA}', 'cmd/redirector']
+- name: 'gcr.io/cloud-builders/docker'
+  args: ['push', 'gcr.io/$PROJECT_ID/button-redirector:latest']
 - name: 'gcr.io/cloud-builders/docker'
   args: ['push', 'gcr.io/$PROJECT_ID/button-redirector:public-image-${COMMIT_SHA}']
 - name: 'gcr.io/cloud-builders/gcloud'
@@ -8,13 +10,9 @@ steps:
   - run
   - deploy
   - cloud-run-button-deploy
-  - --image=gcr.io/$PROJECT_ID/button-redirector:public-image-${COMMIT_SHA}
+  - --image=gcr.io/$PROJECT_ID/button-redirector:latest
   - --region=us-central1
   - --platform=managed
   - --quiet
   env:
   - CLOUDSDK_CORE_DISABLE_PROMPTS=1
-
-images:
-  - "gcr.io/$PROJECT_ID/button-redirector"
-  - "gcr.io/$PROJECT_ID/button-redirector:public-image-${COMMIT_SHA}"
