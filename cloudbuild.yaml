@@ -17,6 +17,7 @@
 
 substitutions:
   _IMAGE_TAG: '${COMMIT_SHA}'
+
 steps:
   - name: "gcr.io/cloud-builders/docker"
     args:
@@ -30,10 +31,13 @@ steps:
       ]
   - name: "gcr.io/cloudshell-images/custom-image-validation"
     args: ["image_test.py", "--image", "gcr.io/$PROJECT_ID/button"]
+
 images:
   - "gcr.io/$PROJECT_ID/button:latest"
   - "gcr.io/$PROJECT_ID/button:public-image-${_IMAGE_TAG}"
+
 timeout: "3600s"
+
 options:
   machineType: "N1_HIGHCPU_8"
   dynamicSubstitutions: true
