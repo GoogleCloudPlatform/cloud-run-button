@@ -320,6 +320,9 @@ func run(opts runOpts) error {
 	if err == nil {
 		// service exists
 		existingEnvVars, err = envVars(project, serviceName, region)
+		if err != nil {
+			return err
+		}
 	}
 
 	neededEnvs := needEnvs(appFile.Env, existingEnvVars)
@@ -346,6 +349,10 @@ func run(opts runOpts) error {
 
 	if appFile.Hooks.PreBuild.Commands != nil {
 		err = runScripts(appDir, appFile.Hooks.PreBuild.Commands, hookEnvs)
+		if err != nil {
+			return fmt.Errorf("attempted to run prebuild scripts and failed: %s", err)
+		}
+
 	}
 
 	skipBuild := appFile.Build.Skip != nil && *appFile.Build.Skip == true
@@ -409,6 +416,9 @@ func run(opts runOpts) error {
 
 	if appFile.Hooks.PostBuild.Commands != nil {
 		err = runScripts(appDir, appFile.Hooks.PostBuild.Commands, hookEnvs)
+		if err != nil {
+			return fmt.Errorf("attempted to run postbuild scripts and failed: %s", err)
+		}
 	}
 
 	if pushImage {
