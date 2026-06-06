@@ -353,7 +353,7 @@ func run(opts runOpts) error {
 	skipDocker := false
 	skipJib := false
 
-	builderImage := "gcr.io/buildpacks/builder:v1"
+	builderImage := "gcr.io/buildpacks/builder:v2"
 
 	if appFile.Build.Buildpacks.Builder != "" {
 		skipDocker = true
